@@ -220,13 +220,71 @@
             <input type="checkbox" id="checkDesign" class="w-5 h-5 accent-indigo-500 rounded cursor-pointer mt-1 flex-none">
           </div>
 
-          <!-- Lab quick action -->
-          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between">
-            <span class="text-xs text-slate-400">Do it in the in-app interactive whiteboard or IDE</span>
-            <button id="openLabForTodayBtn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition">
-              <span>Open Sketchpad & IDE</span>
-              <span>✏️</span>
-            </button>
+          <!-- Problem Statement & Interactive Guide Preview -->
+          <div class="mt-3 pt-3 border-t border-slate-800/80 space-y-2.5">
+            <div id="todayProblemStatementBox" class="text-xs bg-slate-950/80 border border-slate-800/90 p-3 rounded-xl text-slate-300 space-y-1.5">
+              <div class="font-bold text-indigo-300 flex items-center justify-between">
+                <span>📋 Problem Statement & Constraints</span>
+                <span class="text-[10px] text-slate-400 font-normal">SDE-2 Bar</span>
+              </div>
+              <p id="todayProblemStatementText" class="leading-relaxed text-slate-300"></p>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <button id="toggleTodayHintBtn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/25 rounded-xl text-xs font-semibold transition">
+                  💡 Stuck? Step-by-Step Guide
+                </button>
+                <button id="toggleTodayVerifyBtn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/25 rounded-xl text-xs font-semibold transition">
+                  ✅ Verify & Solution
+                </button>
+              </div>
+              <button id="openLabForTodayBtn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition">
+                <span>Open Sketchpad & IDE</span>
+                <span>✏️</span>
+              </button>
+            </div>
+
+            <!-- Progressive Step-by-Step Hint Drawer -->
+            <div id="todayDesignHintsBox" class="hidden bg-slate-950 border border-amber-500/25 rounded-xl p-3 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-300">🧭 Guided Step-by-Step Breakdown</span>
+                <span id="todayHintProgress" class="text-[11px] font-mono text-slate-400">Step 0 / 4</span>
+              </div>
+              <div id="todayHintsList" class="space-y-1.5"></div>
+              <div class="flex items-center gap-2 pt-1">
+                <button id="revealNextHintTodayBtn" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-semibold transition">
+                  Reveal Next Hint →
+                </button>
+                <button id="resetHintsTodayBtn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg text-[11px] transition">
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <!-- Verify Checklist & Reference Solution Drawer -->
+            <div id="todayDesignVerifyBox" class="hidden bg-slate-950 border border-emerald-500/25 rounded-xl p-3 space-y-3 text-xs">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-emerald-300">✅ Verify Your Sketch / Design</span>
+                  <span id="todayVerifyScore" class="text-[11px] font-mono text-emerald-400 font-semibold">0 / 4 Verified</span>
+                </div>
+                <div id="todayVerifyChecklist" class="space-y-1.5"></div>
+              </div>
+              <div class="pt-2 border-t border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <button id="toggleTodaySolutionBtn" class="text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1 transition">
+                    <span>🔓 Reveal Reference Solution & Code Blueprint</span>
+                  </button>
+                  <a id="todaySolutionVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[11px] text-rose-300 hover:text-rose-200 underline">
+                    Watch Solution Walkthrough ↗
+                  </a>
+                </div>
+                <div id="todaySolutionContent" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-2">
+                  <p id="todaySolutionSummary" class="text-slate-300 leading-relaxed"></p>
+                  <pre id="todaySolutionCode" class="text-[11px] font-mono text-indigo-200 bg-slate-950 p-2.5 rounded-lg overflow-x-auto"></pre>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -385,13 +443,43 @@
           </div>
         </div>
 
-        <!-- Guided Prompt Box -->
-        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
-          <div>
-            <span class="font-bold text-indigo-400">Today's Sketch Challenge:</span>
-            <span class="text-slate-300 ml-1.5" id="canvasChallengeText">Draw an API Gateway routing to an Auth Service, User Service, and Redis Cache with circuit breakers.</span>
+        <!-- Guided Prompt & Interactive Verification Box -->
+        <div class="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl space-y-3 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="font-bold text-indigo-400" id="labProblemTitle">Day 1 Challenge:</span>
+              <span class="text-slate-300 ml-1" id="canvasChallengeText"></span>
+            </div>
+            <button id="sampleDiagramBtn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[11px] font-medium transition flex-none">Draw Sample Template</button>
           </div>
-          <button id="sampleDiagramBtn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[11px] font-medium transition flex-none">Draw Sample Template</button>
+          <p id="labProblemStatement" class="text-slate-400 leading-relaxed bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80"></p>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="labRevealNextHintBtn" class="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 rounded-xl text-[11px] font-semibold transition">
+              💡 Stuck? Reveal Next Hint
+            </button>
+            <button id="labToggleVerifyBtn" class="px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-[11px] font-semibold transition">
+              ✅ Verify My Sketch
+            </button>
+            <button id="labToggleSolutionBtn" class="px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-xl text-[11px] font-semibold transition">
+              🔓 Reference Solution
+            </button>
+          </div>
+          <div id="labHintsList" class="hidden space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-amber-500/20"></div>
+          <div id="labVerifyPanel" class="hidden space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-emerald-500/20">
+            <div class="flex justify-between font-bold text-emerald-300 mb-1">
+              <span>Self-Audit Your Sketch:</span>
+              <span id="labVerifyScore" class="font-mono">0 / 4</span>
+            </div>
+            <div id="labVerifyChecklist" class="space-y-1.5"></div>
+          </div>
+          <div id="labSolutionPanel" class="hidden space-y-2 bg-slate-950 p-3 rounded-xl border border-indigo-500/20">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-indigo-300">Gold-Standard SDE-2 Reference</span>
+              <a id="labSolutionVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[11px] text-rose-300 underline">Watch Full Walkthrough ↗</a>
+            </div>
+            <p id="labSolutionSummary" class="text-slate-300 leading-relaxed"></p>
+            <pre id="labSolutionCode" class="text-[11px] font-mono text-indigo-200 bg-slate-900 p-2.5 rounded-lg overflow-x-auto"></pre>
+          </div>
         </div>
       </div>
 
@@ -555,10 +643,10 @@
         headline: "Arrays, Two Pointers & SOLID Principles",
         subheadline: "Master pointer manipulation and class decoupling to eliminate O(N²) scans.",
         consume: {
-          title: "SOLID Principles in Practical Code Refactoring",
+          title: "Single Responsibility & SOLID Principles (Low Level Design)",
           duration: "14 mins",
-          desc: "Watch how violating Single Responsibility creates spaghetti code in production, and how to write clean decoupled interfaces.",
-          url: "https://www.youtube.com/c/ConceptCoding",
+          desc: "Learn how violating Single Responsibility creates tightly coupled code in production, and how to refactor classes cleanly for LLD rounds.",
+          url: "https://www.youtube.com/watch?v=raXNtcdCF64",
           takeaway: "Favor composition over inheritance; classes must be open for extension, closed for modification."
         },
         solve: {
@@ -568,10 +656,43 @@
           hint: "Initialize left at index 0 and right at index n-1. If sum > target, decrement right; if sum < target, increment left. O(N) time, O(1) space."
         },
         design: {
-          title: "Parking Lot: Spot Allocation Strategy",
+          title: "Design a Multi-Floor Parking Lot System",
           category: "LLD / Machine Coding",
-          desc: "Implement the Strategy Pattern to dynamically allocate spots (Nearest-to-Entrance vs Lowest-Floor-First) across 3 vehicle types.",
-          challenge: "Sketch the Class Diagram for ParkingLot, Floor, ParkingSpot, and IParkingStrategy."
+          desc: "Implement an extensible Parking Lot supporting multiple vehicle types, entry/exit gates, and swappable spot allocation strategies.",
+          problemStatement: "Design a Parking Lot with N floors and multiple Entry/Exit gates. Support 3 vehicle types (Bike, Car, Truck) and 3 spot sizes (Compact, Regular, Large). When a vehicle enters, assign a spot using a configurable strategy (e.g., Nearest-to-Entrance or Lowest-Floor-First), issue a Ticket, and calculate fees on exit (Hourly vs Flat pricing).",
+          challenge: "Sketch the Class Diagram: ParkingLot (Singleton) -> ParkingFloor -> ParkingSpot, plus EntryGate, ExitGate, Ticket, and IParkingStrategy.",
+          steps: [
+            "Step 1 (Core Entities): Identify Vehicle (enum VehicleType), ParkingSpot (id, type, isOccupied), ParkingFloor (list of spots), Ticket (entryTime, spot, vehicle), and EntryGate / ExitGate.",
+            "Step 2 (Relationships): ParkingLot holds List<ParkingFloor>. Each ParkingFloor manages a Map<SpotType, List<ParkingSpot>> for O(1) lookup of available spots.",
+            "Step 3 (Design Patterns): Use Strategy Pattern for IParkingStrategy (NearestEntranceStrategy, LowestFloorStrategy) and IPricingStrategy (HourlyPricing, WeekendFlatPricing) so you avoid messy if-else blocks.",
+            "Step 4 (Concurrency Edge Case): Two cars at different EntryGates might grab the same last spot! Use a synchronized block / ReentrantLock per ParkingSpot or Floor during spot assignment."
+          ],
+          verifyChecks: [
+            "Did you separate Vehicle from ParkingSpot & Ticket (Single Responsibility)?",
+            "Can you add a new EVChargingSpot or Pricing rule without modifying ParkingLot (Open-Closed)?",
+            "Did you use an interface/Strategy Pattern for Spot Allocation?",
+            "Did you handle race conditions when 2 Entry Gates assign spots simultaneously?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=7kRUmKzyNpE",
+            summary: "Use ParkingLot as a Singleton facade coordinating ParkingFloors. EntryGate delegates spot finding to IParkingStrategy (using a Min-Heap or TreeSet per gate for nearest spot). ExitGate delegates fee calculation to IPricingStrategy and marks the spot free atomically.",
+            code: `interface IParkingStrategy {
+  ParkingSpot findSpot(List<ParkingFloor> floors, VehicleType type);
+}
+class NearestGateStrategy implements IParkingStrategy {
+  public ParkingSpot findSpot(List<ParkingFloor> floors, VehicleType type) {
+    // Poll min-heap of available spots ordered by distance to gate
+  }
+}
+class EntryGate {
+  synchronized Ticket generateTicket(Vehicle v, IParkingStrategy strategy) {
+    ParkingSpot spot = strategy.findSpot(lot.getFloors(), v.getType());
+    if (spot == null) throw new ParkingFullException();
+    spot.assignVehicle(v); // atomic mark occupied
+    return new Ticket(v, spot, Instant.now());
+  }
+}`
+          }
         },
         behavioral: {
           title: "Disagree and Commit on Tech Stack",
@@ -583,11 +704,11 @@
         headline: "Sliding Window & Factory Pattern",
         subheadline: "Track contiguous subarray states efficiently and encapsulate object instantiation.",
         consume: {
-          title: "Factory & Abstract Factory Patterns Explained",
-          duration: "12 mins",
-          desc: "Deep-dive into delegating object creation to specialized factory subclasses without coupling to concrete classes.",
-          url: "https://www.youtube.com/c/ConceptCoding",
-          takeaway: "Clients should depend only on interfaces, leaving runtime creation to dedicated factory factories."
+          title: "Factory & Creational Design Patterns Explained",
+          duration: "15 mins",
+          desc: "Deep-dive into delegating object creation to specialized factory classes without coupling your business logic to concrete implementations.",
+          url: "https://www.youtube.com/watch?v=TKtxIHt2GsM",
+          takeaway: "Clients should depend only on interfaces, leaving runtime instantiation to dedicated factories."
         },
         solve: {
           title: "Longest Substring Without Repeating Characters",
@@ -596,10 +717,38 @@
           hint: "Maintain a sliding window [L, R] and a hash set of seen characters. When duplicates appear at R, advance L until duplicate is removed."
         },
         design: {
-          title: "Notification Dispatcher (Factory Pattern)",
+          title: "Multi-Channel Notification Dispatcher (Factory Pattern)",
           category: "LLD / Machine Coding",
           desc: "Build a notification engine creating SMS, Email, and Push dispatchers based on user preference tokens.",
-          challenge: "Sketch how an INotificationFactory delivers email, sms, and push payloads."
+          problemStatement: "Design a Notification Service that sends alerts via Email, SMS, or Push Notification. Each channel has different validation rules (email regex, phone E.164, device token) and retry policies. Adding a new channel like WhatsApp tomorrow should require zero changes to the core dispatcher.",
+          challenge: "Sketch INotificationChannel, Concrete Channels (Email, SMS, Push), and NotificationFactory.",
+          steps: [
+            "Step 1 (Interface): Define INotificationChannel with validate(recipient) and send(message) methods.",
+            "Step 2 (Factory): Create NotificationFactory.getChannel(ChannelType) returning the right concrete instance.",
+            "Step 3 (Extensibility): Register channels in a Map<ChannelType, Supplier<INotificationChannel>> to eliminate switch-case boilerplate.",
+            "Step 4 (Resilience): Wrap send() in a RetryDecorator or Dead Letter Queue fallback for transient provider failures."
+          ],
+          verifyChecks: [
+            "Does the caller only interact with INotificationChannel, never 'new EmailChannel()'?",
+            "Is validation encapsulated inside each channel rather than in a giant controller?",
+            "Can a new channel (e.g. Slack/WhatsApp) be plugged in without touching existing senders?",
+            "Did you account for rate limits or retry backoff on external vendor failure?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=vr_ABKuFxjk",
+            summary: "Combine Factory Pattern with a Registry Map so NotificationService simply asks the factory for a channel and calls channel.send(payload).",
+            code: `interface NotificationChannel { void send(String to, String msg); }
+class NotificationFactory {
+  private static final Map<String, NotificationChannel> registry = Map.of(
+    "EMAIL", new EmailChannel(),
+    "SMS", new SmsChannel()
+  );
+  public static NotificationChannel get(String type) {
+    return Optional.ofNullable(registry.get(type))
+      .orElseThrow(() -> new IllegalArgumentException("Unknown channel"));
+  }
+}`
+          }
         },
         behavioral: {
           title: "Customer Obsession & Operational Excellence",
@@ -611,10 +760,10 @@
         headline: "Monotonic Stacks & Observer Pattern",
         subheadline: "Solve next-greater-element challenges in O(N) and master pub-sub events.",
         consume: {
-          title: "Observer Pattern & Event-Driven Architecture",
+          title: "Observer Design Pattern Explanation (English)",
           duration: "15 mins",
-          desc: "Understand how Subject-Observer relationships power UI event listeners and distributed microservice notification streams.",
-          url: "https://www.youtube.com/c/ConceptCoding",
+          desc: "Understand how Subject-Observer relationships power UI event listeners, stock tickers, and distributed notification streams.",
+          url: "https://www.youtube.com/watch?v=48MyHEB4qqM",
           takeaway: "Maintain a subscriber list with notify() methods; ensure thread safety when modifying listeners."
         },
         solve: {
@@ -624,10 +773,36 @@
           hint: "Keep a decreasing monotonic stack of indices. When encountering a warmer day, pop elements and calculate distance."
         },
         design: {
-          title: "Stock Broker Ticker Feed (Observer Pattern)",
+          title: "Amazon 'Notify Me' Back-in-Stock Alert (Observer)",
           category: "LLD / Machine Coding",
-          desc: "Implement an in-memory StockTicker notifying multiple trading algorithms on price ticks.",
-          challenge: "Draw the Subject interface with attach(), detach(), and notify() alongside concrete observer bots."
+          desc: "Implement an Observable Product Inventory system notifying subscribed users when stock goes from 0 to > 0.",
+          problemStatement: "Build Amazon's 'Notify Me When Available' feature. Users can subscribe to out-of-stock products via Email or Push. When inventory is restocked from 0 to > 0, notify all subscribed users automatically and avoid duplicate notifications if stock fluctuates.",
+          challenge: "Draw IStockObservable (add, remove, notifyObservers, setStock) and Concrete Observers.",
+          steps: [
+            "Step 1 (Subject): Define StockObservable interface with register(Observer), unregister(Observer), and notifySubscribers().",
+            "Step 2 (Observer): Define NotificationObserver with update(Product p).",
+            "Step 3 (State Trigger): In setStockCount(int newStock), only trigger notifySubscribers() when previousStock == 0 && newStock > 0.",
+            "Step 4 (Thread Safety): Use CopyOnWriteArrayList for observers so concurrent registrations don't throw ConcurrentModificationException during iteration."
+          ],
+          verifyChecks: [
+            "Are Observers decoupled from InventoryService via an interface?",
+            "Does notification trigger ONLY on 0 -> positive transition (not every restock)?",
+            "Is the observer list thread-safe during concurrent subscribe/notify?",
+            "Did you support unsubscribing after notification is sent?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=48MyHEB4qqM",
+            summary: "ProductInventory acts as the Observable holding a thread-safe CopyOnWriteArrayList of NotificationObservers, firing updates asynchronously when stock transitions from 0.",
+            code: `class IphoneObservable {
+  private List<Observer> observers = new CopyOnWriteArrayList<>();
+  private int stock = 0;
+  public void setStock(int added) {
+    boolean wasEmpty = (this.stock == 0);
+    this.stock += added;
+    if (wasEmpty && this.stock > 0) observers.forEach(o -> o.update(this.stock));
+  }
+}`
+          }
         },
         behavioral: {
           title: "Ownership & Long-Term Scalability",
@@ -639,11 +814,11 @@
         headline: "Binary Search Variations & Strategy Pattern",
         subheadline: "Master logarithmic search on rotated and monotonic spaces.",
         consume: {
-          title: "Strategy Pattern: Swapping Algorithms at Runtime",
-          duration: "11 mins",
-          desc: "Learn how the Strategy pattern cleans up nested if-else ladders in payment gateways and pricing calculators.",
-          url: "https://www.youtube.com/c/ConceptCoding",
-          takeaway: "Define a family of algorithms, encapsulate each one, and make them interchangeable."
+          title: "Strategy Design Pattern (English)",
+          duration: "12 mins",
+          desc: "Learn how the Strategy pattern eliminates nested if-else ladders in payment gateways and pricing calculators.",
+          url: "https://www.youtube.com/watch?v=RrdNBdkTrcs",
+          takeaway: "Define a family of algorithms, encapsulate each one, and make them interchangeable at runtime."
         },
         solve: {
           title: "Search in Rotated Sorted Array",
@@ -652,10 +827,33 @@
           hint: "Identify which half (left or right) is strictly sorted, then check if target lies within that sorted range."
         },
         design: {
-          title: "Dynamic Surge Pricing Calculator",
+          title: "Dynamic Surge Pricing Calculator (Strategy)",
           category: "LLD / Machine Coding",
           desc: "Create an Uber-style fare calculation engine that swaps FlatRate, WeatherSurge, and PeakHour strategies dynamically.",
-          challenge: "Sketch the IFareStrategy hierarchy and RideContext calculation flow."
+          problemStatement: "Design a Ride Fare Engine for a ride-hailing app. Base fare depends on distance and duration, but multipliers change dynamically based on conditions: Normal, PeakHour (1.5x), RainSurge (1.8x), or AirportFlatFee. Ensure strategies can be swapped or chained cleanly.",
+          challenge: "Sketch the IFareStrategy hierarchy and RideContext calculation flow.",
+          steps: [
+            "Step 1 (Strategy Interface): Define IFareStrategy with double calculateFare(RideDetails ride).",
+            "Step 2 (Implementations): Implement NormalFare, PeakHourFare, and RainSurgeFare.",
+            "Step 3 (Context): RidePricingContext accepts IFareStrategy via constructor or setter.",
+            "Step 4 (Edge Case): Use BigDecimal instead of double for currency calculations to prevent floating-point rounding bugs."
+          ],
+          verifyChecks: [
+            "Is the pricing algorithm decoupled from the Ride entity?",
+            "Can you switch pricing strategies at runtime without changing RideService?",
+            "Did you use BigDecimal or integer paise/cents for monetary precision?",
+            "Are edge cases like 0 km or negative surge multipliers guarded?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=RrdNBdkTrcs",
+            summary: "Encapsulate each fare rule inside an IFareStrategy implementation and inject the active strategy into FareCalculator.",
+            code: `interface FareStrategy { BigDecimal calculate(double km, int mins); }
+class PeakHourStrategy implements FareStrategy {
+  public BigDecimal calculate(double km, int mins) {
+    return BigDecimal.valueOf((km * 12 + mins * 2) * 1.5);
+  }
+}`
+          }
         },
         behavioral: {
           title: "Bias for Action vs Calculated Risk",
@@ -667,10 +865,10 @@
         headline: "Linked Lists & Decorator Pattern",
         subheadline: "Master pointer rewiring and attach responsibilities dynamically.",
         consume: {
-          title: "Decorator Pattern: Pizza Toppings & Stream Wrappers",
-          duration: "13 mins",
-          desc: "See how Java IO streams use decorators to layer buffering, compression, and encryption over raw byte streams.",
-          url: "https://www.youtube.com/c/ConceptCoding",
+          title: "Decorator Design Pattern (English)",
+          duration: "14 mins",
+          desc: "See how wrappers layer buffering, compression, or toppings dynamically without class explosion.",
+          url: "https://www.youtube.com/watch?v=OsRVypK57JM",
           takeaway: "Decorators share the same interface as the wrapped object while adding behavior before or after delegation."
         },
         solve: {
@@ -683,7 +881,30 @@
           title: "Coffee / Pizza Ordering Decorator Engine",
           category: "LLD / Machine Coding",
           desc: "Build an extensible billing system that wraps base items with Milk, EspressoShot, and Caramel decorators.",
-          challenge: "Draw the class hierarchy showing BaseBeverage and BeverageDecorator."
+          problemStatement: "Design a Coffee Shop billing system supporting base drinks (Espresso, Latte) and arbitrary combinations of add-ons (Extra Shot, Oat Milk, Whipped Cream, Caramel). Avoid creating subclasses for every combination (e.g., LatteWithOatMilkAndCaramel).",
+          challenge: "Draw BaseBeverage interface, Concrete Beverages, and ToppingDecorator holding a BaseBeverage reference.",
+          steps: [
+            "Step 1 (Component): Define BasePizza / Beverage abstract class with getCost() and getDescription().",
+            "Step 2 (Decorator): ToppingDecorator extends Beverage AND 'has-a' Beverage reference.",
+            "Step 3 (Delegation): Each decorator returns wrapped.getCost() + addonCost.",
+            "Step 4 (Stacking): Verify you can wrap `new Caramel(new ExtraShot(new Espresso()))` cleanly."
+          ],
+          verifyChecks: [
+            "Does ToppingDecorator both IS-A Beverage and HAS-A Beverage?",
+            "Can you stack the same topping twice (e.g. Double Extra Shot)?",
+            "Are base drinks completely unaware of decorators?",
+            "Does getDescription() compose cleanly without trailing commas?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=OsRVypK57JM",
+            summary: "Decorator wraps an instance of the same base interface, delegating getCost() and adding its own delta.",
+            code: `abstract class Beverage { abstract int cost(); }
+abstract class AddonDecorator extends Beverage { protected Beverage base; }
+class OatMilk extends AddonDecorator {
+  OatMilk(Beverage b) { this.base = b; }
+  int cost() { return base.cost() + 40; }
+}`
+          }
         },
         behavioral: {
           title: "Deliver Results Under Tight Deadlines",
@@ -695,10 +916,10 @@
         headline: "Trees & Composite Pattern",
         subheadline: "Recursive tree traversals and hierarchical tree representations.",
         consume: {
-          title: "Binary Tree DFS & BFS Mental Models",
-          duration: "18 mins",
-          desc: "Visualize pre-order, in-order, post-order, and level-order queue traversals with visual call stacks.",
-          url: "https://www.youtube.com/c/NeetCode",
+          title: "Binary Trees DFS & Recursion Mental Models",
+          duration: "16 mins",
+          desc: "Master tree recursion intuition by thinking in subtrees, base cases, and return values.",
+          url: "https://www.youtube.com/watch?v=izRDc1il9Pk",
           takeaway: "Trees are naturally recursive; identify whether state passes down (parameters) or bubbles up (return values)."
         },
         solve: {
@@ -710,8 +931,32 @@
         design: {
           title: "File System Directory Tree (Composite Pattern)",
           category: "LLD / Machine Coding",
-          desc: "Implement File and Directory classes adhering to an IFileSystemNode interface for recursive size calculation.",
-          challenge: "Sketch the composite structure showing how Directory contains a list of IFileSystemNode children."
+          desc: "Implement File and Directory classes adhering to an IFileSystemNode interface for recursive size & ls() operations.",
+          problemStatement: "Design an in-memory File System supporting Files and Directories (which can contain nested Files and Directories). Implement `ls()` to print the hierarchy and `getSize()` to compute total bytes recursively without instanceof checks.",
+          challenge: "Sketch IFileSystemNode with File (leaf) and Directory (composite holding List<IFileSystemNode>).",
+          steps: [
+            "Step 1 (Uniform Interface): Create FileSystemNode interface with ls(int indent) and getSize().",
+            "Step 2 (Leaf): File implements FileSystemNode and returns its own byte size.",
+            "Step 3 (Composite): Directory implements FileSystemNode, stores List<FileSystemNode>, and sums child.getSize().",
+            "Step 4 (Edge Case): Prevent circular directory symlinks or self-nesting."
+          ],
+          verifyChecks: [
+            "Did you avoid 'if (node instanceof Directory)' checks in client code?",
+            "Do both File and Directory implement the exact same interface?",
+            "Does getSize() work recursively to arbitrary nesting depth?",
+            "Did you guard against adding a directory into itself (cycle)?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=gktZsX9Z8Kw",
+            summary: "Composite Pattern treats individual Files and composite Directories uniformly under FileSystemNode.",
+            code: `interface FileSystemNode { int getSize(); void ls(); }
+class Directory implements FileSystemNode {
+  List<FileSystemNode> children = new ArrayList<>();
+  public int getSize() {
+    return children.stream().mapToInt(FileSystemNode::getSize).sum();
+  }
+}`
+          }
         },
         behavioral: {
           title: "Insist on the Highest Standards",
@@ -723,11 +968,11 @@
         headline: "Weekly Machine Coding Simulation 1",
         subheadline: "90-minute timed build from scratch: In-Memory Tic-Tac-Toe / Connect Four.",
         consume: {
-          title: "Tic-Tac-Toe Low Level Design End-to-End",
+          title: "Build Tic-Tac-Toe Game | UML + Code (LLD)",
           duration: "22 mins",
-          desc: "Watch a FAANG engineer build a 100% extensible N-player, N*N grid game handling winning line checks in O(1).",
-          url: "https://www.youtube.com/c/ConceptCoding",
-          takeaway: "Separate game state, board evaluation, and player strategies into distinct decoupled packages."
+          desc: "Watch a complete walkthrough of designing an extensible N*N, K-player Tic-Tac-Toe engine with O(1) win detection.",
+          url: "https://www.youtube.com/watch?v=BGFzYjGtRP4",
+          takeaway: "Separate game state, board evaluation, and player strategies into distinct decoupled classes."
         },
         solve: {
           title: "Valid Sudoku & Matrix Validation",
@@ -736,10 +981,36 @@
           hint: "Use bitmasks or sets for each row, column, and 3x3 box to confirm values 1-9 occur at most once."
         },
         design: {
-          title: "Full Timed Project: Tic-Tac-Toe Game Engine",
+          title: "Full Timed Project: Extensible Tic-Tac-Toe",
           category: "Machine Coding Mock",
-          desc: "Set a 90-minute timer. Code the game in your IDE with support for human vs bot players and configurable board sizes.",
-          challenge: "Whiteboard the entire domain model before typing a single line of code."
+          desc: "Set a 45–90 minute timer. Build an N×N Tic-Tac-Toe engine supporting multiple players and O(1) win checks.",
+          problemStatement: "Design and code an extensible Tic-Tac-Toe game. Requirements: Configurable board size N×N, support 2+ players with custom PlayingPiece symbols (X, O, $, etc.), validate moves (bounds & occupancy), detect draw, and check win conditions in O(1) time per move.",
+          challenge: "Whiteboard GameController, Board, Player, PlayingPiece, and O(1) row/col/diag counters.",
+          steps: [
+            "Step 1 (Models): PlayingPiece (enum PieceType), Player (name, piece), Board (size, PieceType[][] grid).",
+            "Step 2 (Game Loop): TicTacToeGame holds Deque<Player> turns to rotate players cleanly.",
+            "Step 3 (O(1) Win Check): Maintain rowCount[N], colCount[N], diagCount, antiDiagCount per player instead of scanning the N×N board on every move.",
+            "Step 4 (Draw Check): Track freeCells counter; when freeCells == 0 and no winner, declare Draw."
+          ],
+          verifyChecks: [
+            "Is board size N configurable rather than hardcoded to 3?",
+            "Can you add a 3rd player or BotPlayer without rewriting GameLoop?",
+            "Is win detection O(1) using row/col/diagonal counters?",
+            "Are invalid coordinates and occupied cells rejected gracefully?"
+          ],
+          solution: {
+            videoUrl: "https://www.youtube.com/watch?v=gktZsX9Z8Kw",
+            summary: "Use a Deque<Player> for turn rotation and per-player row/col/diagonal integer counters for O(1) win detection.",
+            code: `boolean makeMove(int r, int c, Player p) {
+  if (grid[r][c] != null) return false;
+  grid[r][c] = p.piece;
+  int d = p.id == 0 ? 1 : -1;
+  rows[r] += d; cols[c] += d;
+  if (r == c) diag += d;
+  if (r + c == n - 1) antiDiag += d;
+  return Math.abs(rows[r]) == n || Math.abs(cols[c]) == n || Math.abs(diag) == n || Math.abs(antiDiag) == n;
+}`
+          }
         },
         behavioral: {
           title: "Earn Trust & Mentoring",
@@ -748,22 +1019,148 @@
       }
     ];
 
-    // Generate remaining days up to Day 45 procedurally to ensure all 45 days are richly populated!
     const TOPIC_PRESETS = [
-      { week: 2, name: "Heaps & Splitwise Machine Coding", dsa: "Kth Largest Element in an Array", dsaDiff: "Medium", lld: "Splitwise Debt Simplification", lldCat: "LLD / Machine Coding", hldConcept: "Debt Graph Simplification via Min-Heap" },
-      { week: 2, name: "Backtracking & Vending Machine State Pattern", dsa: "Subsets & Permutations", dsaDiff: "Medium", lld: "Vending Machine State Engine", lldCat: "State Pattern", hldConcept: "State Transitions (Idle, HasMoney, Dispensing)" },
-      { week: 2, name: "Tries & Auto-Complete Engine", dsa: "Implement Trie (Prefix Tree)", dsaDiff: "Medium", lld: "Typeahead Auto-Complete (In-Memory)", lldCat: "LLD", hldConcept: "Trie Node with Top-K Heap Caching" },
-      { week: 3, name: "Graphs & System Design Scaling 101", dsa: "Number of Islands (BFS/DFS)", dsaDiff: "Medium", lld: "Social Network Graph Connections", lldCat: "HLD Foundations", hldConcept: "Horizontal Scaling vs Vertical Scaling, LB Round Robin" },
-      { week: 3, name: "Consistent Hashing & Cache-Aside", dsa: "Clone Graph", dsaDiff: "Medium", lld: "Distributed Hash Ring Simulator", lldCat: "Distributed Building Blocks", hldConcept: "Consistent Hashing Ring with Virtual Nodes" },
-      { week: 3, name: "CAP Theorem & Database Sharding", dsa: "Course Schedule (Topological Sort)", dsaDiff: "Medium", lld: "Shard Key Router Engine", lldCat: "HLD Foundations", hldConcept: "Range-based vs Hash-based Sharding and Rebalancing" },
-      { week: 4, name: "Rate Limiter Design (Token Bucket / Leaky Bucket)", dsa: "Design Add and Search Words Data Structure", dsaDiff: "Medium", lld: "Sliding Window Log Rate Limiter", lldCat: "HLD Architecture", hldConcept: "Redis Sorted Sets for Sliding Window Rate Limiting" },
-      { week: 4, name: "URL Shortener (TinyURL) Architecture", dsa: "Encode and Decode Strings", dsaDiff: "Medium", lld: "Base62 Encoder & Counter Sharder", lldCat: "HLD Architecture", hldConcept: "Base62 conversion, Token Range Service (ZooKeeper), K-V Caching" },
-      { week: 4, name: "Global Notification Service (Pub/Sub)", dsa: "Word Break (DP)", dsaDiff: "Medium", lld: "Priority Notification Queue Dispatcher", lldCat: "HLD Architecture", hldConcept: "Kafka Topics, Dead Letter Queues, APNS/FCM Integrations" },
-      { week: 5, name: "Database Indexing (B-Tree vs LSM) & Concurrency", dsa: "Coin Change (Dynamic Programming)", dsaDiff: "Medium", lld: "Thread-Safe In-Memory Key-Value Store", lldCat: "Concurrency / LLD", hldConcept: "B+Tree vs LSM Trees (Read heavy vs Write heavy workloads)" },
-      { week: 5, name: "Distributed Locks (Redis Redlock & ZooKeeper)", dsa: "Longest Increasing Subsequence", dsaDiff: "Medium", lld: "BookMyShow Seat Reservation Concurrency", lldCat: "LLD / Concurrency", hldConcept: "Pessimistic vs Optimistic Locking with Version numbers" },
-      { week: 5, name: "Kafka Event-Driven Architecture", dsa: "Maximum Subarray & Kadane's", dsaDiff: "Medium", lld: "Order Processing Consumer Pipeline", lldCat: "HLD Architecture", hldConcept: "Partitioning, Consumer Groups, Offsets & At-Least-Once Delivery" },
-      { week: 6, name: "E-Commerce Checkout & Idempotency", dsa: "Merge Intervals", dsaDiff: "Medium", lld: "Payment Gateway Idempotent API Key Cache", lldCat: "HLD Architecture", hldConcept: "Idempotency Keys, Two-Phase Commit, Saga Orchestration" },
-      { week: 6, name: "Final Mock Sprint & Amazon LP Story Polish", dsa: "Trapping Rain Water", dsaDiff: "Hard", lld: "Full 2-Hour Machine Coding Mock", lldCat: "Mock Simulation", hldConcept: "End-to-end 45-min whiteboarding simulation & behavioral audit" }
+      {
+        week: 2, name: "Heaps & Splitwise Machine Coding", dsa: "Kth Largest Element in an Array", dsaDiff: "Medium",
+        lld: "Splitwise Debt Simplification", lldCat: "LLD / Machine Coding", hldConcept: "Debt Graph Simplification via Min-Heap",
+        videoUrl: "https://www.youtube.com/watch?v=2QvlBrhLLHc",
+        problemStatement: "Design Splitwise: Users can create groups, add expenses split Equally, Exactly, or by Percentage, and view balances. Implement a 'Simplify Debts' feature that minimizes the total number of transactions required to settle a group.",
+        steps: [
+          "Step 1 (Entities): User, Group, Expense, Split (abstract -> EqualSplit, ExactSplit, PercentSplit).",
+          "Step 2 (Validation): Validate that ExactSplits sum to totalAmount and PercentSplits sum to 100%.",
+          "Step 3 (Simplify Debts): Compute net balance per user. Put creditors (+ve) in a Max-Heap and debtors (-ve) in a Min-Heap.",
+          "Step 4 (Greedy Match): Match largest creditor with largest debtor repeatedly until heaps are empty."
+        ],
+        verifyChecks: [
+          "Did you use Strategy/Factory for Equal, Exact, and Percentage split validation?",
+          "Are net balances tracked cleanly so A->B and B->A cancel out?",
+          "Does Simplify Debts use Min/Max Heaps to minimize transactions?",
+          "Did you guard against floating-point precision drift in percentage splits?"
+        ],
+        code: `// Net balance simplification with two heaps
+while (!creditors.isEmpty() && !debtors.isEmpty()) {
+  var c = creditors.poll(), d = debtors.poll();
+  int settled = Math.min(c.amt, -d.amt);
+  transactions.add(d.user + " pays " + c.user + ": " + settled);
+  if (c.amt > settled) creditors.add(new Balance(c.user, c.amt - settled));
+  if (-d.amt > settled) debtors.add(new Balance(d.user, d.amt + settled));
+}`
+      },
+      {
+        week: 3, name: "Consistent Hashing & Cache-Aside", dsa: "Clone Graph", dsaDiff: "Medium",
+        lld: "Distributed Hash Ring Simulator", lldCat: "Distributed Building Blocks", hldConcept: "Consistent Hashing Ring with Virtual Nodes",
+        videoUrl: "https://www.youtube.com/watch?v=zaRkONvyGr8",
+        problemStatement: "Design a Consistent Hashing Ring for a distributed Redis cluster. When a cache node is added or removed, minimize key remapping to ~K/N keys and prevent hot-spots when nodes have unequal hardware capacity.",
+        steps: [
+          "Step 1 (Ring Structure): Use a TreeMap<Long, Node> representing positions 0 to 2^32 - 1.",
+          "Step 2 (Key Lookup): Hash the key, find `ring.ceilingEntry(hash)`; if null, wrap around to `ring.firstEntry()`.",
+          "Step 3 (Virtual Nodes): Map each physical server to 100+ virtual points (`serverA#0`..`serverA#99`) for uniform distribution.",
+          "Step 4 (Node Failure): On node removal, only keys between predecessor and removed node move to the clockwise neighbor."
+        ],
+        verifyChecks: [
+          "Did you use a TreeMap (or sorted array + binary search) for O(log N) clockwise lookup?",
+          "Did you handle wrap-around when key hash > largest node hash?",
+          "Did you include Virtual Nodes to prevent skewed key distribution?",
+          "Can you explain why this beats `hash(key) % N` during scaling?"
+        ],
+        code: `Node getNode(String key) {
+  long h = hash(key);
+  Map.Entry<Long, Node> entry = ring.ceilingEntry(h);
+  return (entry != null ? entry : ring.firstEntry()).getValue();
+}`
+      },
+      {
+        week: 3, name: "CAP Theorem & Database Sharding", dsa: "Course Schedule (Topological Sort)", dsaDiff: "Medium",
+        lld: "Shard Key Router Engine", lldCat: "HLD Foundations", hldConcept: "CAP Theorem & Consistency vs Availability",
+        videoUrl: "https://www.youtube.com/watch?v=8UryASGBiR4",
+        problemStatement: "You are designing a global ledger vs a social media feed. Explain how network partitions force a choice between CP and AP, and design a database sharding strategy that avoids cross-shard joins and hot-key celebrities.",
+        steps: [
+          "Step 1 (Partition Reality): Network partitions (P) always happen; choose CP (banking/inventory) or AP (social feed/cart).",
+          "Step 2 (Shard Key Selection): Pick high-cardinality keys aligned with your primary query pattern (e.g., `user_id` or `tenant_id`).",
+          "Step 3 (Hot-Key Mitigation): Append a random salt `user_id + '_' + rand(0..9)` for celebrity keys, or cache aggressively in Redis.",
+          "Step 4 (Cross-Shard Queries): Avoid scatter-gather joins by denormalizing or using async CDC (Debezium -> Elasticsearch)."
+        ],
+        verifyChecks: [
+          "Did you justify CP vs AP based on business domain (money vs likes)?",
+          "Does your shard key avoid monotonic hot-spotting (e.g., not `created_at`)?",
+          "Did you address how to handle a celebrity/hot-key shard?",
+          "Did you explain how secondary indexes or cross-shard queries are handled?"
+        ],
+        code: `// Consistent Shard Routing
+int shardId = Math.abs(murmurHash(userId)) % totalShards;
+DataSource ds = shardPool.get(shardId);`
+      },
+      {
+        week: 4, name: "Rate Limiter Design (Token Bucket / Sliding Window)", dsa: "Design Add and Search Words Data Structure", dsaDiff: "Medium",
+        lld: "Distributed Rate Limiter", lldCat: "HLD Architecture", hldConcept: "Token Bucket & Sliding Window Rate Limiting",
+        videoUrl: "https://www.youtube.com/watch?v=mhUQe4BKZXs",
+        problemStatement: "Design an API Rate Limiter for 100K RPS protecting backend microservices. Support per-user and per-IP rules (e.g., 100 req/min), return HTTP 429 with `X-RateLimit-Remaining`, and keep latency overhead < 2ms.",
+        steps: [
+          "Step 1 (Placement): Place Rate Limiter at the API Gateway / Envoy sidecar before hitting app servers.",
+          "Step 2 (Algorithm): Compare Token Bucket (allows bursts, low memory) vs Sliding Window Log (strict accuracy, higher memory).",
+          "Step 3 (Distributed State): Store counters in Redis Cluster; use a Lua script so `GET` + `DECR` / `ZADD` executes atomically.",
+          "Step 4 (Failure Mode): Fail-open if Redis is down so you don't block all legitimate users during a cache outage."
+        ],
+        verifyChecks: [
+          "Did you place the limiter at the API Gateway and use Redis for shared state?",
+          "Did you prevent race conditions using Redis Lua scripts or atomic INCR?",
+          "Did you include HTTP 429 + Retry-After headers in the API contract?",
+          "Did you specify fail-open vs fail-closed behavior if Redis is unreachable?"
+        ],
+        code: `-- Redis Atomic Sliding Window Lua Script
+redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[1] - ARGV[2])
+if redis.call('ZCARD', KEYS[1]) < tonumber(ARGV[3]) then
+  redis.call('ZADD', KEYS[1], ARGV[1], ARGV[1])
+  return 1
+end
+return 0`
+      },
+      {
+        week: 4, name: "URL Shortener (TinyURL) Architecture", dsa: "Encode and Decode Strings", dsaDiff: "Medium",
+        lld: "Base62 Encoder & Counter Sharder", lldCat: "HLD Architecture", hldConcept: "URL Shortener (TinyURL) System Design",
+        videoUrl: "https://www.youtube.com/watch?v=xFeWVugaouk",
+        problemStatement: "Design a URL Shortener (100M new URLs/month, 100:1 read-to-write ratio). Generate 7-character short links, redirect in < 20ms P99, and support custom aliases and expiration.",
+        steps: [
+          "Step 1 (Capacity Math): 100M writes/mo ≈ 40 writes/sec; 100:1 ratio = 4,000 reads/sec. 62^7 ≈ 3.5 trillion combinations.",
+          "Step 2 (ID Generation): Avoid hash collisions by using a ZooKeeper/Redis Token Range Service giving each app server unique ID ranges.",
+          "Step 3 (Read Path): API Gateway -> Redis Cache (80/20 rule) -> NoSQL/DB -> Return HTTP 302 (if tracking analytics) or 301 (browser cached).",
+          "Step 4 (Storage): DynamoDB/Cassandra keyed by `short_code` with TTL for expired links."
+        ],
+        verifyChecks: [
+          "Did you calculate write/read QPS and 5-year storage size?",
+          "Did you explain Base62 encoding + collision-free ID generation?",
+          "Did you distinguish HTTP 301 (Permanent) vs 302 (Temporary for analytics)?",
+          "Did you add Redis caching on the read-heavy redirect path?"
+        ],
+        code: `String encodeBase62(long id) {
+  String chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  StringBuilder sb = new StringBuilder();
+  while (id > 0) { sb.append(chars.charAt((int)(id % 62))); id /= 62; }
+  return sb.reverse().toString();
+}`
+      },
+      {
+        week: 4, name: "Global Notification Service (Pub/Sub)", dsa: "Word Break (DP)", dsaDiff: "Medium",
+        lld: "Priority Notification Queue Dispatcher", lldCat: "HLD Architecture", hldConcept: "Scalable Notification Service with Kafka",
+        videoUrl: "https://www.youtube.com/watch?v=R_w__nzPq6M",
+        problemStatement: "Design a Notification Service delivering OTPs (sub-second SLA), transactional receipts, and marketing blasts across Push, SMS, and Email without dropping messages or spamming users.",
+        steps: [
+          "Step 1 (Priority Queues): Separate Kafka topics for `otp-high-priority` vs `marketing-bulk` so promos never delay OTPs.",
+          "Step 2 (User Preferences & Rate Limit): Check User Preference DB & Redis frequency cap before dispatching.",
+          "Step 3 (Idempotency): Deduplicate using `notification_id` in Redis so retries don't send duplicate SMS.",
+          "Step 4 (Retries & DLQ): Exponential backoff on 3rd-party vendor 5xx, routing permanent failures to a Dead Letter Queue."
+        ],
+        verifyChecks: [
+          "Did you isolate High-Priority (OTP) queues from Bulk Marketing queues?",
+          "Did you include Idempotency keys to prevent duplicate notifications?",
+          "Did you add a Dead Letter Queue (DLQ) and exponential backoff retries?",
+          "Did you check user opt-out preferences before calling APNS/FCM/Twilio?"
+        ],
+        code: `// Idempotent Consumer Check
+if (redis.setIfAbsent("notif:" + event.id, "1", Duration.ofHours(24))) {
+  provider.send(event);
+}`
+      }
     ];
 
     for (let d = 8; d <= 45; d++) {
@@ -778,7 +1175,7 @@
           title: `${preset.hldConcept} Deep-Dive`,
           duration: "15 mins",
           desc: `Visual architectural breakdown of ${preset.hldConcept}. Focus on latency trade-offs and failure scenarios.`,
-          url: "https://www.youtube.com/c/GauravSensei",
+          url: preset.videoUrl,
           takeaway: "Always quantify non-functional metrics: P99 latency, availability SLAs, and write-to-read ratios."
         },
         solve: {
@@ -791,7 +1188,15 @@
           title: preset.lld,
           category: preset.lldCat,
           desc: `Build a clean, runnable prototype modeling ${preset.lld} with clear separation of concerns.`,
-          challenge: `Sketch the architectural boundary or class diagram for ${preset.lld}.`
+          problemStatement: preset.problemStatement,
+          challenge: `Sketch the architectural boundary or class diagram for ${preset.lld}.`,
+          steps: preset.steps,
+          verifyChecks: preset.verifyChecks,
+          solution: {
+            videoUrl: preset.videoUrl,
+            summary: `Core SDE-2 architecture for ${preset.lld}: separate interfaces, use atomic/thread-safe state transitions, and handle failure modes cleanly.`,
+            code: preset.code
+          }
         },
         behavioral: {
           title: `SDE 2 Competency: ${d % 2 === 0 ? "Frugality & Cost Optimization" : "Invent & Simplify"}`,
@@ -810,7 +1215,7 @@
         subtitle: "Why modulo hashing (hash % N) causes cache invalidation storms",
         problem: "With standard mod hashing, adding 1 server invalidates ~N/(N+1) keys (almost 99% cache miss storm!).",
         solution: "Map both nodes and keys to a 360° hash ring. Keys route clockwise to nearest node. Adding a node moves only K/N keys. Virtual nodes prevent hot-spots.",
-        videoUrl: "https://blog.bytebytego.com/"
+        videoUrl: "https://www.youtube.com/watch?v=zaRkONvyGr8"
       },
       {
         category: "Database Internals",
@@ -820,7 +1225,7 @@
         subtitle: "PostgreSQL vs Cassandra/RocksDB storage engines",
         problem: "B-Trees require in-place random disk writes, creating write amplification and bottlenecks under massive write throughput.",
         solution: "LSM Trees buffer writes sequentially in memory (MemTable) and append to disk (SSTables), providing blazing write speeds. Compaction merges SSTables in the background.",
-        videoUrl: "https://blog.bytebytego.com/"
+        videoUrl: "https://www.youtube.com/watch?v=oz5c88cO5P8"
       },
       {
         category: "Distributed Systems",
@@ -830,7 +1235,7 @@
         subtitle: "Networks will always partition; you must pick CP or AP",
         problem: "Network cables get cut, routers fail. Network Partition (P) is inevitable in distributed systems.",
         solution: "When a partition occurs, choose between Consistency (refuse writes/reads if nodes cannot sync) or Availability (accept writes on both sides and reconcile later).",
-        videoUrl: "https://www.youtube.com/c/GauravSensei"
+        videoUrl: "https://www.youtube.com/watch?v=8UryASGBiR4"
       },
       {
         category: "Caching Strategies",
@@ -840,7 +1245,7 @@
         subtitle: "How to avoid stale reads and database thrashing",
         problem: "Updating the database without coordinating the cache leads to stale dirty reads across multiple server threads.",
         solution: "Cache-Aside: Read from cache; on miss, fetch from DB and populate cache. On write, update DB first, then delete (invalidate) the cache key.",
-        videoUrl: "https://blog.bytebytego.com/"
+        videoUrl: "https://www.youtube.com/watch?v=rlJLPT9HLig"
       },
       {
         category: "Messaging & Queues",
@@ -850,7 +1255,7 @@
         subtitle: "Message broker (push) vs Distributed commit log (pull)",
         problem: "RabbitMQ tracks individual message acknowledgments per consumer, bogging down under millions of historical event replays.",
         solution: "Kafka is a sequential, partitioned commit log. Consumers pull by offset at their own pace. Retains messages for days, enabling re-processing and massive throughput.",
-        videoUrl: "https://blog.bytebytego.com/"
+        videoUrl: "https://www.youtube.com/watch?v=fB0PAVkhn6I"
       },
       {
         category: "Rate Limiting",
@@ -860,7 +1265,7 @@
         subtitle: "Protecting APIs from DDoS with microsecond precision",
         problem: "Fixed window counters allow double traffic spikes at the boundary (e.g. 100 requests at 11:59 and 100 at 12:00).",
         solution: "Token Bucket fills tokens at a constant rate; requests consume tokens. Sliding Window Log in Redis uses sorted sets (ZREMRANGEBYSCORE) to count requests strictly in the last 60 seconds.",
-        videoUrl: "https://blog.bytebytego.com/"
+        videoUrl: "https://www.youtube.com/watch?v=mhUQe4BKZXs"
       },
       {
         category: "Concurrency & Locks",
@@ -870,17 +1275,17 @@
         subtitle: "How BookMyShow avoids double seat reservations",
         problem: "Two users click 'Book Ticket' for Seat A12 at the exact same millisecond.",
         solution: "Optimistic Locking uses an incrementing `version` column: `UPDATE seat SET user_id=X, version=version+1 WHERE id=12 AND version=4`. If 0 rows updated, notify the second user that the seat was taken.",
-        videoUrl: "https://www.youtube.com/c/ConceptCoding"
+        videoUrl: "https://www.youtube.com/watch?v=g8AVGr_0Wko"
       },
       {
-        category: "Data Structures",
+        category: "LLD Patterns",
         duration: "40s Reel",
-        icon: "🔍",
-        title: "Bloom Filters: Fast Probabilistic Checking",
-        subtitle: "Checking membership without querying the database disk",
-        problem: "Querying disk to check if a username or URL slug already exists is slow and consumes IOPS.",
-        solution: "A Bloom Filter uses a bit array and k-hash functions. If it says 'NO', the element 100% does not exist! If it says 'YES', there's a small chance of false positive, so you only check DB when needed.",
-        videoUrl: "https://blog.bytebytego.com/"
+        icon: "🧩",
+        title: "Strategy Pattern in 60 Seconds",
+        subtitle: "Eliminating messy if-else ladders in Machine Coding",
+        problem: "Adding a new payment method or parking spot rule forces you to edit a giant if-else chain, violating Open-Closed Principle.",
+        solution: "Extract each algorithm into its own class implementing a shared interface, and inject the desired strategy at runtime.",
+        videoUrl: "https://www.youtube.com/watch?v=NCWqGNPzos0"
       }
     ];
 
@@ -973,6 +1378,8 @@
       currentDay: 1,
       streak: 0,
       completedDays: {}, // { 1: { consume: true, solve: true, design: true, behavioral: true } }
+      revealedHints: {}, // { 1: 2 }
+      verifiedChecks: {}, // { 1: [true, false, true, false] }
       starNotes: {},
       currentReelIndex: 0,
       activeTab: 'view-today',
@@ -1001,6 +1408,8 @@
           currentDay: STATE.currentDay,
           streak: STATE.streak,
           completedDays: STATE.completedDays,
+          revealedHints: STATE.revealedHints,
+          verifiedChecks: STATE.verifiedChecks,
           starNotes: STATE.starNotes,
           jobStatus: STATE.jobStatus
         }));
@@ -1053,11 +1462,84 @@
       c3.checked = !!dayData.design;
       c4.checked = !!dayData.behavioral;
 
+      // Problem Statement & Design Guide Sync
+      document.getElementById('todayProblemStatementText').textContent = cur.design.problemStatement;
+      document.getElementById('todaySolutionVideoLink').href = cur.design.solution.videoUrl;
+      document.getElementById('todaySolutionSummary').textContent = cur.design.solution.summary;
+      document.getElementById('todaySolutionCode').textContent = cur.design.solution.code;
+
+      // Sync Lab Problem Panel as well
+      document.getElementById('labProblemTitle').textContent = `Day ${cur.day}: ${cur.design.title}`;
+      document.getElementById('labProblemStatement').textContent = cur.design.problemStatement;
+      document.getElementById('labSolutionVideoLink').href = cur.design.solution.videoUrl;
+      document.getElementById('labSolutionSummary').textContent = cur.design.solution.summary;
+      document.getElementById('labSolutionCode').textContent = cur.design.solution.code;
+
+      renderDesignGuidance(cur);
+
       // Load star note
       const savedNote = STATE.starNotes[cur.day] || '';
       document.getElementById('starNotesInput').value = savedNote;
 
       updateDailyProgressBar();
+    }
+
+    function renderDesignGuidance(cur) {
+      const hintCount = STATE.revealedHints[cur.day] || 0;
+      const steps = cur.design.steps || [];
+      const checks = cur.design.verifyChecks || [];
+      const savedChecks = STATE.verifiedChecks[cur.day] || [];
+
+      // Render hints in Today + Lab
+      const hintTargets = [
+        { list: document.getElementById('todayHintsList'), prog: document.getElementById('todayHintProgress') },
+        { list: document.getElementById('labHintsList'), prog: null }
+      ];
+      hintTargets.forEach(t => {
+        if (!t.list) return;
+        if (t.prog) t.prog.textContent = `Step ${Math.min(hintCount, steps.length)} / ${steps.length}`;
+        if (hintCount === 0) {
+          t.list.innerHTML = '<div class="text-slate-500 italic">Click "Reveal Next Hint" to get step-by-step guidance without spoiling the full solution.</div>';
+        } else {
+          t.list.innerHTML = steps.slice(0, hintCount).map(s =>
+            `<div class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200">${escapeHtml(s)}</div>`
+          ).join('');
+        }
+      });
+
+      // Render verification checkboxes in Today + Lab
+      let passed = 0;
+      checks.forEach((_, idx) => { if (savedChecks[idx]) passed++; });
+      document.getElementById('todayVerifyScore').textContent = `${passed} / ${checks.length} Verified`;
+      document.getElementById('labVerifyScore').textContent = `${passed} / ${checks.length} Verified`;
+
+      const checkTargets = [
+        document.getElementById('todayVerifyChecklist'),
+        document.getElementById('labVerifyChecklist')
+      ];
+      checkTargets.forEach(container => {
+        if (!container) return;
+        container.innerHTML = '';
+        checks.forEach((label, idx) => {
+          const row = document.createElement('label');
+          row.className = 'flex items-start gap-2 cursor-pointer text-slate-300 hover:text-white';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!savedChecks[idx];
+          cb.className = 'mt-0.5 accent-emerald-500 rounded cursor-pointer';
+          cb.addEventListener('change', () => {
+            if (!STATE.verifiedChecks[cur.day]) STATE.verifiedChecks[cur.day] = [];
+            STATE.verifiedChecks[cur.day][idx] = cb.checked;
+            saveState();
+            renderDesignGuidance(cur);
+          });
+          const span = document.createElement('span');
+          span.textContent = label;
+          row.appendChild(cb);
+          row.appendChild(span);
+          container.appendChild(row);
+        });
+      });
     }
 
     function updateDailyProgressBar() {
@@ -1678,6 +2160,50 @@ console.log("Test [2,3,4], target=6 ->", twoSumSorted([2,3,4], 6));`
       // Open Lab from Today's design card
       document.getElementById('openLabForTodayBtn').addEventListener('click', () => {
         switchTab('view-lab');
+      });
+
+      // Interactive Design Guide Listeners (Today + Lab)
+      document.getElementById('toggleTodayHintBtn').addEventListener('click', () => {
+        document.getElementById('todayDesignHintsBox').classList.toggle('hidden');
+      });
+      document.getElementById('toggleTodayVerifyBtn').addEventListener('click', () => {
+        document.getElementById('todayDesignVerifyBox').classList.toggle('hidden');
+      });
+      document.getElementById('toggleTodaySolutionBtn').addEventListener('click', () => {
+        document.getElementById('todaySolutionContent').classList.toggle('hidden');
+      });
+      document.getElementById('revealNextHintTodayBtn').addEventListener('click', () => {
+        const cur = CURRICULUM.find(c => c.day === STATE.currentDay) || CURRICULUM[0];
+        const curCount = STATE.revealedHints[cur.day] || 0;
+        if (curCount < cur.design.steps.length) {
+          STATE.revealedHints[cur.day] = curCount + 1;
+          saveState();
+          renderDesignGuidance(cur);
+        }
+      });
+      document.getElementById('resetHintsTodayBtn').addEventListener('click', () => {
+        const cur = CURRICULUM.find(c => c.day === STATE.currentDay) || CURRICULUM[0];
+        STATE.revealedHints[cur.day] = 0;
+        saveState();
+        renderDesignGuidance(cur);
+      });
+
+      document.getElementById('labRevealNextHintBtn').addEventListener('click', () => {
+        const list = document.getElementById('labHintsList');
+        list.classList.remove('hidden');
+        const cur = CURRICULUM.find(c => c.day === STATE.currentDay) || CURRICULUM[0];
+        const curCount = STATE.revealedHints[cur.day] || 0;
+        if (curCount < cur.design.steps.length) {
+          STATE.revealedHints[cur.day] = curCount + 1;
+          saveState();
+          renderDesignGuidance(cur);
+        }
+      });
+      document.getElementById('labToggleVerifyBtn').addEventListener('click', () => {
+        document.getElementById('labVerifyPanel').classList.toggle('hidden');
+      });
+      document.getElementById('labToggleSolutionBtn').addEventListener('click', () => {
+        document.getElementById('labSolutionPanel').classList.toggle('hidden');
       });
 
       // Reels Navigation
