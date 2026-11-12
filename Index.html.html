@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SDE2 Daily Drive — Automated Daily Prep & Habit Engine</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#090d16">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            dark: {
+              bg: '#090d16',
+              card: '#111827',
+              border: '#1f293d',
+              elevated: '#1a2236'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* iOS friendly scrolling & scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.4); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .snap-y-mandatory { scroll-snap-type: y mandatory; }
+    .snap-start { scroll-snap-align: start; }
+    /* Animated pulse gradient */
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+    .pulse-subtle { animation: subtlePulse 4s ease-in-out infinite; }
+    /* Touch target comfort */
+    button, a, input, select { touch-action: manipulation; }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white flex flex-col overflow-hidden">
+
+  <!-- TOP HEADER -->
+  <header class="flex-none bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 z-30 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-bold text-white text-base">
+        ⚡
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            SDE2 Daily Drive
+            <span class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Amazon → SDE2</span>
+          </h1>
+        </div>
+        <p class="text-xs text-slate-400 font-medium" id="headerSubtitle">6-Week Automated Consistency Engine</p>
+      </div>
+    </div>
+
+    <!-- Header Actions (Streak & Timer) -->
+    <div class="flex items-center space-x-2">
+      <!-- Streak Badge -->
+      <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-semibold cursor-pointer" id="streakBadge" title="Current Daily Streak">
+        <span>🔥</span>
+        <span id="streakCountText">0 Days</span>
+      </div>
+
+      <!-- Quick Pomodoro Button -->
+      <button id="toggleTimerModalBtn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition">
+        <span>⏱️</span>
+        <span id="headerTimerDisplay" class="font-mono">25:00</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN SCROLLABLE APP BODY -->
+  <main class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col pb-20" id="mainContentArea">
+    
+    <!-- ==================== VIEW 1: TODAY'S DAILY FEED ==================== -->
+    <section id="view-today" class="view-panel p-4 max-w-3xl mx-auto w-full space-y-4">
+      
+      <!-- Day Banner & Progress Widget -->
+      <div class="rounded-2xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-900 border border-indigo-500/20 p-4 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2.5 py-0.5 rounded-full border border-indigo-500/30" id="dayPill">Day 1 of 45</span>
+            <span class="text-xs text-slate-400" id="weekPill">Week 1: Core Coding & Patterns</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button id="prevDayBtn" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-bold transition">◀</button>
+            <button id="nextDayBtn" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-bold transition">▶</button>
+          </div>
+        </div>
+
+        <h2 class="text-lg font-bold text-white mb-1" id="dailyHeadline">Arrays & Two Pointers + SOLID Principles</h2>
+        <p class="text-xs text-slate-300 mb-3" id="dailySubheadline">Master the core building blocks: eliminating O(N²) scans and writing extensible class contracts.</p>
+
+        <!-- Progress bar for today's 4 items -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-[11px] font-medium text-slate-400">
+            <span>Today's Completion</span>
+            <span id="todayProgressText" class="text-indigo-400 font-semibold font-mono">0 / 4 (0%)</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div id="todayProgressBar" class="bg-gradient-to-r from-indigo-500 to-amber-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 AUTOMATIC DAILY ACTION CARDS -->
+      <div class="space-y-3">
+        
+        <!-- CARD 1: CONSUME (BITE-SIZED VIDEO / CONCEPT) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 hover:border-slate-700 transition shadow-sm" id="cardConsume">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-lg flex-none">
+                🎬
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-rose-400">1. Watch & Absorb</span>
+                  <span class="text-[10px] text-slate-400 px-2 py-0.5 rounded-full bg-slate-800" id="consumeDuration">12 mins</span>
+                </div>
+                <h3 class="text-sm font-bold text-white mt-0.5" id="consumeTitle">SOLID Principles Explained with Practical Refactoring</h3>
+                <p class="text-xs text-slate-400 mt-1" id="consumeDesc">Learn how violating Single Responsibility and Open-Closed breaks high-scale microservices, and how to spot code smells in LLD rounds.</p>
+              </div>
+            </div>
+            <input type="checkbox" id="checkConsume" class="w-5 h-5 accent-indigo-500 rounded cursor-pointer mt-1 flex-none">
+          </div>
+
+          <!-- Video Link & Takeaway Box -->
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div class="text-[11px] text-slate-300 flex items-center gap-1.5">
+              <span class="text-indigo-400">💡 Key rule:</span>
+              <span id="consumeTakeaway" class="font-medium text-slate-300">Prefer composition over inheritance; classes should be open for extension, closed for modification.</span>
+            </div>
+            <a href="#" target="_blank" rel="noopener noreferrer" id="consumeVideoBtn" class="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition flex-none">
+              <span>Watch on YouTube</span>
+              <span class="text-xs">↗</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- CARD 2: SOLVE (DSA PATTERN QUESTION) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 hover:border-slate-700 transition shadow-sm" id="cardSolve">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg flex-none">
+                💻
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">2. Solve (DSA Pattern)</span>
+                  <span class="text-[10px] text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 font-semibold" id="solveDifficulty">Medium</span>
+                </div>
+                <h3 class="text-sm font-bold text-white mt-0.5" id="solveTitle">Two Sum II - Input Array Is Sorted</h3>
+                <p class="text-xs text-slate-400 mt-1" id="solveDesc">Target time: 20 mins. Practice clean pointer manipulation with O(1) extra memory constraint.</p>
+              </div>
+            </div>
+            <input type="checkbox" id="checkSolve" class="w-5 h-5 accent-indigo-500 rounded cursor-pointer mt-1 flex-none">
+          </div>
+
+          <!-- Problem actions & Hint Reveal -->
+          <div class="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <button id="toggleSolveHintBtn" class="text-xs text-slate-400 hover:text-indigo-400 font-medium flex items-center gap-1 transition">
+                <span>🔍 Reveal Approach Hint</span>
+              </button>
+              <a href="https://neetcode.io/problems/two-integer-sum-ii" target="_blank" rel="noopener noreferrer" id="solveProblemLink" class="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/25 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                <span>Solve on NeetCode</span>
+                <span>↗</span>
+              </a>
+            </div>
+            <div id="solveHintBox" class="hidden text-xs bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl text-slate-300 font-mono">
+              <strong>Pattern:</strong> Two pointers at left (0) and right (n-1). If sum &gt; target, decrement right; if sum &lt; target, increment left. Time: O(N), Space: O(1).
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: DESIGN & BUILD (HANDS-ON LLD / HLD) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 hover:border-slate-700 transition shadow-sm" id="cardDesign">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg flex-none">
+                🛠️
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">3. Practical Hands-on Lab</span>
+                  <span class="text-[10px] text-indigo-300 px-2 py-0.5 rounded-full bg-indigo-500/15" id="designCategory">LLD / Machine Coding</span>
+                </div>
+                <h3 class="text-sm font-bold text-white mt-0.5" id="designTitle">Parking Lot: Spot Allocation Strategy</h3>
+                <p class="text-xs text-slate-400 mt-1" id="designDesc">Implement the Strategy Pattern to dynamically allocate spots (Nearest-to-Entrance vs Lowest-Floor-First) across 3 vehicle types.</p>
+              </div>
+            </div>
+            <input type="checkbox" id="checkDesign" class="w-5 h-5 accent-indigo-500 rounded cursor-pointer mt-1 flex-none">
+          </div>
+
+          <!-- Lab quick action -->
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Do it in the in-app interactive whiteboard or IDE</span>
+            <button id="openLabForTodayBtn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition">
+              <span>Open Sketchpad & IDE</span>
+              <span>✏️</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CARD 4: BEHAVIORAL & LEADERSHIP (STAR PROMPT) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 hover:border-slate-700 transition shadow-sm" id="cardBehavioral">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-lg flex-none">
+                🗣️
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400">4. Amazon LP → SDE 2 Story</span>
+                  <span class="text-[10px] text-purple-300 px-2 py-0.5 rounded-full bg-purple-500/15">Dive Deep & Ownership</span>
+                </div>
+                <h3 class="text-sm font-bold text-white mt-0.5" id="behavioralTitle">Handling a Disagreement on System Architecture</h3>
+                <p class="text-xs text-slate-400 mt-1" id="behavioralDesc">Recall a moment at Amazon where you disagreed with a senior engineer or PM's architectural choice. How did you test with data and commit?</p>
+              </div>
+            </div>
+            <input type="checkbox" id="checkBehavioral" class="w-5 h-5 accent-indigo-500 rounded cursor-pointer mt-1 flex-none">
+          </div>
+
+          <!-- Quick notes area -->
+          <div class="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
+            <button id="toggleStarNotesBtn" class="text-xs text-slate-400 hover:text-purple-300 flex items-center gap-1 font-medium transition">
+              <span>📝 Draft My STAR Bullet Points</span>
+            </button>
+            <div id="starNotesBox" class="hidden space-y-2">
+              <textarea id="starNotesInput" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="S: High latency in order fulfillment service&#10;T: Evaluate Redis caching vs DynamoDB query tuning&#10;A: Ran load test benchmark proving Redis reduced P99 by 65%&#10;R: Saved $4K/mo compute and convinced team"></textarea>
+              <div class="flex justify-end">
+                <button id="saveStarNotesBtn" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold rounded-lg transition">Save Note</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Complete All Button -->
+      <div class="pt-2 flex justify-center">
+        <button id="markEntireDayCompleteBtn" class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-amber-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 hover:opacity-95 transition flex items-center justify-center gap-2">
+          <span>🎉 Complete Day & Increment Streak</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ==================== VIEW 2: SHORTS & REELS (MICRO-LEARNING SCROLL) ==================== -->
+    <section id="view-shorts" class="view-panel hidden p-4 max-w-md mx-auto w-full space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📱 Tech Shorts & Concept Reels</span>
+          </h2>
+          <p class="text-xs text-slate-400">Scroll through bite-sized visual concepts with zero cognitive overload</p>
+        </div>
+        <div class="flex items-center space-x-1 text-xs text-slate-400 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800 font-mono" id="reelCounter">
+          1 / 8
+        </div>
+      </div>
+
+      <!-- REEL VIEWER CARD -->
+      <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl overflow-hidden flex flex-col justify-between min-h-[460px] transition-all duration-300" id="reelContainer">
+        
+        <!-- Reel Header Badge -->
+        <div class="flex items-center justify-between">
+          <span class="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold" id="reelCategory">System Design 101</span>
+          <span class="text-xs text-slate-400 font-mono" id="reelDuration">⏱️ 45s Reel</span>
+        </div>
+
+        <!-- Reel Content Visual Area -->
+        <div class="my-auto py-4 space-y-4">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-3xl shadow-inner shadow-indigo-500/20" id="reelIcon">
+            🔄
+          </div>
+          <div class="text-center space-y-1">
+            <h3 class="text-lg font-bold text-white" id="reelTitle">Consistent Hashing & Ring Rebalancing</h3>
+            <p class="text-xs text-slate-400" id="reelSubtitle">Why modulo hashing `hash(key) % N` kills your cache on node addition</p>
+          </div>
+
+          <!-- Visual Concept Box -->
+          <div class="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800/80 space-y-2 text-xs">
+            <div class="flex items-center gap-2 text-indigo-400 font-semibold">
+              <span>⚡ The Core Problem:</span>
+            </div>
+            <p class="text-slate-300" id="reelProblem">With standard mod hashing, adding 1 server invalidates ~N/(N+1) keys (almost 99% cache miss storm!).</p>
+            
+            <div class="flex items-center gap-2 text-amber-400 font-semibold pt-1">
+              <span>💡 The SDE-2 Solution:</span>
+            </div>
+            <p class="text-slate-300" id="reelSolution">Map both nodes and keys to a 360° hash ring. Keys route clockwise to nearest node. Adding a node moves only K/N keys. Virtual nodes prevent hot-spots.</p>
+          </div>
+        </div>
+
+        <!-- Reel Actions & Navigation -->
+        <div class="pt-3 border-t border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <button id="prevReelBtn" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              ◀ Previous Reel
+            </button>
+            <a href="https://blog.bytebytego.com/" target="_blank" rel="noopener noreferrer" id="reelDeepDiveBtn" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-md shadow-indigo-600/20 transition">
+              <span>Deep-Dive Video</span>
+              <span>↗</span>
+            </a>
+            <button id="nextReelBtn" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              Next Reel ▶
+            </button>
+          </div>
+          <p class="text-[11px] text-center text-slate-400">Swipe or tap Next to scroll through architectural mental models</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== VIEW 3: HANDS-ON LAB (WHITEBOARD & CODE RUNNER) ==================== -->
+    <section id="view-lab" class="view-panel hidden p-4 max-w-4xl mx-auto w-full space-y-4">
+      
+      <!-- Sub-tabs: System Design Canvas vs Code Scratchpad -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🛠️ Practical Hands-on Sandbox</span>
+          </h2>
+          <p class="text-xs text-slate-400">Practice diagrams and code implementations directly on your phone or laptop</p>
+        </div>
+        <div class="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+          <button id="tabLabCanvasBtn" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition">Architecture Sketchpad</button>
+          <button id="tabLabCodeBtn" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">Code Runner</button>
+        </div>
+      </div>
+
+      <!-- LAB PANEL 1: ARCHITECTURE SKETCHPAD -->
+      <div id="labCanvasSection" class="space-y-3">
+        <!-- Canvas Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900 p-2.5 rounded-2xl border border-slate-800 text-xs">
+          <div class="flex items-center space-x-1.5">
+            <button id="canvasToolPen" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium flex items-center gap-1">✏️ Pen</button>
+            <button id="canvasToolBox" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-medium flex items-center gap-1">🔲 Box</button>
+            <button id="canvasToolClear" class="px-2.5 py-1 rounded-lg bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 border border-rose-500/30 font-medium">Clear</button>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-400 text-[11px]">Color:</span>
+            <input type="color" id="canvasColorPicker" value="#6366f1" class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
+            <span class="text-slate-400 text-[11px]">Size:</span>
+            <input type="range" id="canvasLineWidth" min="1" max="10" value="3" class="w-16 accent-indigo-500 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- HTML5 Canvas Container -->
+        <div class="relative bg-slate-950 rounded-2xl border border-slate-800 shadow-inner overflow-hidden h-[380px] w-full touch-none flex items-center justify-center">
+          <canvas id="architectureCanvas" class="w-full h-full cursor-crosshair"></canvas>
+          <div class="absolute bottom-2 left-2 text-[10px] text-slate-400 bg-slate-900/90 px-2 py-1 rounded-md border border-slate-800/80 pointer-events-none">
+            Touch or mouse to sketch components (LB, Microservices, Cache, DB)
+          </div>
+        </div>
+
+        <!-- Guided Prompt Box -->
+        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-indigo-400">Today's Sketch Challenge:</span>
+            <span class="text-slate-300 ml-1.5" id="canvasChallengeText">Draw an API Gateway routing to an Auth Service, User Service, and Redis Cache with circuit breakers.</span>
+          </div>
+          <button id="sampleDiagramBtn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[11px] font-medium transition flex-none">Draw Sample Template</button>
+        </div>
+      </div>
+
+      <!-- LAB PANEL 2: IN-BROWSER CODE RUNNER (HIDDEN INITIALLY) -->
+      <div id="labCodeSection" class="hidden space-y-3">
+        <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-2xl border border-slate-800 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-white">Select Exercise:</span>
+            <select id="codeExerciseSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs focus:outline-none focus:border-indigo-500">
+              <option value="lru">Thread-Safe LRU Cache (LLD)</option>
+              <option value="ratelimit">Token Bucket Rate Limiter (HLD/LLD)</option>
+              <option value="twosum">Two Sum II Two Pointers (DSA)</option>
+            </select>
+          </div>
+          <button id="runCodeBtn" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition">
+            <span>Run Code</span>
+            <span>▶</span>
+          </button>
+        </div>
+
+        <!-- Code Editor Area -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-[11px] text-slate-400">
+              <span class="font-mono">JavaScript / Pseudo-code</span>
+              <span class="text-indigo-400 cursor-pointer" id="resetCodeSnippetBtn">Reset Code</span>
+            </div>
+            <textarea id="codeEditor" rows="12" class="w-full bg-slate-950 font-mono text-xs text-indigo-200 border border-slate-800 rounded-2xl p-3 focus:outline-none focus:border-indigo-500 leading-relaxed no-scrollbar"></textarea>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-[11px] text-slate-400">
+              <span class="font-mono">Console Output & Test Results</span>
+              <span id="codeStatusPill" class="text-slate-400 font-mono">Idle</span>
+            </div>
+            <div id="codeOutput" class="w-full h-[270px] bg-slate-950/90 font-mono text-xs text-emerald-400 border border-slate-800 rounded-2xl p-3 overflow-y-auto no-scrollbar">
+              // Click "Run Code" to execute tests...
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== VIEW 4: 45-DAY CURRICULUM ROADMAP ==================== -->
+    <section id="view-roadmap" class="view-panel hidden p-4 max-w-3xl mx-auto w-full space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📅 45-Day SDE2 Master Calendar</span>
+          </h2>
+          <p class="text-xs text-slate-400">Click any day to jump directly into its curriculum and tasks</p>
+        </div>
+        <div class="text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20" id="roadmapOverallProgress">
+          0 / 45 Done (0%)
+        </div>
+      </div>
+
+      <!-- 6 Weeks Accordion / List -->
+      <div class="space-y-3" id="weeksAccordionContainer">
+        <!-- Populated via JavaScript dynamically -->
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: TARGET JOBS RADAR & TRACKER ==================== -->
+    <section id="view-jobs" class="view-panel hidden p-4 max-w-3xl mx-auto w-full space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🎯 Curated SDE-2 Jobs Radar</span>
+          </h2>
+          <p class="text-xs text-slate-400">Target companies hiring lateral SDE-2 engineers with direct portals & rounds</p>
+        </div>
+        <div class="text-xs text-slate-400 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800">
+          <span id="jobsCountText">8 Top Targets</span>
+        </div>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1 text-xs">
+        <button class="job-filter-btn px-3 py-1 rounded-full bg-indigo-600 text-white font-medium flex-none transition" data-filter="all">All Targets</button>
+        <button class="job-filter-btn px-3 py-1 rounded-full bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex-none transition" data-filter="bigtech">Global Big Tech</button>
+        <button class="job-filter-btn px-3 py-1 rounded-full bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex-none transition" data-filter="unicorn">Indian Unicorns</button>
+        <button class="job-filter-btn px-3 py-1 rounded-full bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex-none transition" data-filter="fintech">Fintech & Scaleups</button>
+      </div>
+
+      <!-- Companies Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="jobsGridContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== BOTTOM TAB NAVIGATION (iOS STYLE) ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 px-2 py-2 flex items-center justify-around max-w-xl mx-auto">
+    <button class="nav-tab-btn flex flex-col items-center justify-center py-1 px-3 rounded-xl text-indigo-400 font-semibold transition group" data-target="view-today">
+      <span class="text-lg">☀️</span>
+      <span class="text-[10px] mt-0.5 tracking-tight">Today</span>
+    </button>
+    <button class="nav-tab-btn flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 font-medium transition group" data-target="view-shorts">
+      <span class="text-lg">📱</span>
+      <span class="text-[10px] mt-0.5 tracking-tight">Shorts</span>
+    </button>
+    <button class="nav-tab-btn flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 font-medium transition group" data-target="view-lab">
+      <span class="text-lg">🛠️</span>
+      <span class="text-[10px] mt-0.5 tracking-tight">Hands-on Lab</span>
+    </button>
+    <button class="nav-tab-btn flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 font-medium transition group" data-target="view-roadmap">
+      <span class="text-lg">📅</span>
+      <span class="text-[10px] mt-0.5 tracking-tight">45-Day Map</span>
+    </button>
+    <button class="nav-tab-btn flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 font-medium transition group" data-target="view-jobs">
+      <span class="text-lg">🎯</span>
+      <span class="text-[10px] mt-0.5 tracking-tight">Jobs</span>
+    </button>
+  </nav>
+
+  <!-- ==================== POMODORO / FOCUS TIMER MODAL ==================== -->
+  <div id="timerModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 relative">
+      <button id="closeTimerModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+      <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mx-auto">
+        ⏱️
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">SDE2 Focus Sprint</h3>
+        <p class="text-xs text-slate-400">Lock in with a timed problem or architecture mock</p>
+      </div>
+
+      <!-- Big Timer Display -->
+      <div class="text-4xl font-extrabold font-mono text-white tracking-wider py-2" id="modalTimerDisplay">
+        25:00
+      </div>
+
+      <!-- Presets -->
+      <div class="flex items-center justify-center space-x-2 text-xs">
+        <button class="timer-preset-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-mins="25">25m DSA</button>
+        <button class="timer-preset-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-mins="45">45m Mock</button>
+        <button class="timer-preset-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-mins="5">5m Break</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center space-x-3 pt-2">
+        <button id="startTimerBtn" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition">
+          Start Timer
+        </button>
+        <button id="resetTimerBtn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP ENGINE -->
+  <script>
+    // --- 1. CURATED 45-DAY CURRICULUM DATABASE ---
+    const CURRICULUM = [
+      {
+        day: 1, week: 1,
+        headline: "Arrays, Two Pointers & SOLID Principles",
+        subheadline: "Master pointer manipulation and class decoupling to eliminate O(N²) scans.",
+        consume: {
+          title: "SOLID Principles in Practical Code Refactoring",
+          duration: "14 mins",
+          desc: "Watch how violating Single Responsibility creates spaghetti code in production, and how to write clean decoupled interfaces.",
+          url: "https://www.youtube.com/c/ConceptCoding",
+          takeaway: "Favor composition over inheritance; classes must be open for extension, closed for modification."
+        },
+        solve: {
+          title: "Two Sum II - Input Array Is Sorted",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/two-integer-sum-ii",
+          hint: "Initialize left at index 0 and right at index n-1. If sum > target, decrement right; if sum < target, increment left. O(N) time, O(1) space."
+        },
+        design: {
+          title: "Parking Lot: Spot Allocation Strategy",
+          category: "LLD / Machine Coding",
+          desc: "Implement the Strategy Pattern to dynamically allocate spots (Nearest-to-Entrance vs Lowest-Floor-First) across 3 vehicle types.",
+          challenge: "Sketch the Class Diagram for ParkingLot, Floor, ParkingSpot, and IParkingStrategy."
+        },
+        behavioral: {
+          title: "Disagree and Commit on Tech Stack",
+          desc: "Recall when you recommended a technology or library at Amazon that differed from your team's initial direction. How did you test with data?"
+        }
+      },
+      {
+        day: 2, week: 1,
+        headline: "Sliding Window & Factory Pattern",
+        subheadline: "Track contiguous subarray states efficiently and encapsulate object instantiation.",
+        consume: {
+          title: "Factory & Abstract Factory Patterns Explained",
+          duration: "12 mins",
+          desc: "Deep-dive into delegating object creation to specialized factory subclasses without coupling to concrete classes.",
+          url: "https://www.youtube.com/c/ConceptCoding",
+          takeaway: "Clients should depend only on interfaces, leaving runtime creation to dedicated factory factories."
+        },
+        solve: {
+          title: "Longest Substring Without Repeating Characters",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/longest-substring-without-duplicates",
+          hint: "Maintain a sliding window [L, R] and a hash set of seen characters. When duplicates appear at R, advance L until duplicate is removed."
+        },
+        design: {
+          title: "Notification Dispatcher (Factory Pattern)",
+          category: "LLD / Machine Coding",
+          desc: "Build a notification engine creating SMS, Email, and Push dispatchers based on user preference tokens.",
+          challenge: "Sketch how an INotificationFactory delivers email, sms, and push payloads."
+        },
+        behavioral: {
+          title: "Customer Obsession & Operational Excellence",
+          desc: "Describe a production bug that degraded latency for customers. What deep-dive root cause analysis did you perform?"
+        }
+      },
+      {
+        day: 3, week: 1,
+        headline: "Monotonic Stacks & Observer Pattern",
+        subheadline: "Solve next-greater-element challenges in O(N) and master pub-sub events.",
+        consume: {
+          title: "Observer Pattern & Event-Driven Architecture",
+          duration: "15 mins",
+          desc: "Understand how Subject-Observer relationships power UI event listeners and distributed microservice notification streams.",
+          url: "https://www.youtube.com/c/ConceptCoding",
+          takeaway: "Maintain a subscriber list with notify() methods; ensure thread safety when modifying listeners."
+        },
+        solve: {
+          title: "Daily Temperatures (Monotonic Stack)",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/daily-temperatures",
+          hint: "Keep a decreasing monotonic stack of indices. When encountering a warmer day, pop elements and calculate distance."
+        },
+        design: {
+          title: "Stock Broker Ticker Feed (Observer Pattern)",
+          category: "LLD / Machine Coding",
+          desc: "Implement an in-memory StockTicker notifying multiple trading algorithms on price ticks.",
+          challenge: "Draw the Subject interface with attach(), detach(), and notify() alongside concrete observer bots."
+        },
+        behavioral: {
+          title: "Ownership & Long-Term Scalability",
+          desc: "Share an example where you took responsibility for a project outside your core scope to unblock another team."
+        }
+      },
+      {
+        day: 4, week: 1,
+        headline: "Binary Search Variations & Strategy Pattern",
+        subheadline: "Master logarithmic search on rotated and monotonic spaces.",
+        consume: {
+          title: "Strategy Pattern: Swapping Algorithms at Runtime",
+          duration: "11 mins",
+          desc: "Learn how the Strategy pattern cleans up nested if-else ladders in payment gateways and pricing calculators.",
+          url: "https://www.youtube.com/c/ConceptCoding",
+          takeaway: "Define a family of algorithms, encapsulate each one, and make them interchangeable."
+        },
+        solve: {
+          title: "Search in Rotated Sorted Array",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/find-target-in-rotated-sorted-array",
+          hint: "Identify which half (left or right) is strictly sorted, then check if target lies within that sorted range."
+        },
+        design: {
+          title: "Dynamic Surge Pricing Calculator",
+          category: "LLD / Machine Coding",
+          desc: "Create an Uber-style fare calculation engine that swaps FlatRate, WeatherSurge, and PeakHour strategies dynamically.",
+          challenge: "Sketch the IFareStrategy hierarchy and RideContext calculation flow."
+        },
+        behavioral: {
+          title: "Bias for Action vs Calculated Risk",
+          desc: "When did you have to make an architectural decision with incomplete requirements? How did you derisk the launch?"
+        }
+      },
+      {
+        day: 5, week: 1,
+        headline: "Linked Lists & Decorator Pattern",
+        subheadline: "Master pointer rewiring and attach responsibilities dynamically.",
+        consume: {
+          title: "Decorator Pattern: Pizza Toppings & Stream Wrappers",
+          duration: "13 mins",
+          desc: "See how Java IO streams use decorators to layer buffering, compression, and encryption over raw byte streams.",
+          url: "https://www.youtube.com/c/ConceptCoding",
+          takeaway: "Decorators share the same interface as the wrapped object while adding behavior before or after delegation."
+        },
+        solve: {
+          title: "Reorder List & LRU Linked List Pointers",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/reorder-linked-list",
+          hint: "Find middle using slow/fast pointers, reverse second half in-place, and merge alternate nodes."
+        },
+        design: {
+          title: "Coffee / Pizza Ordering Decorator Engine",
+          category: "LLD / Machine Coding",
+          desc: "Build an extensible billing system that wraps base items with Milk, EspressoShot, and Caramel decorators.",
+          challenge: "Draw the class hierarchy showing BaseBeverage and BeverageDecorator."
+        },
+        behavioral: {
+          title: "Deliver Results Under Tight Deadlines",
+          desc: "Describe a project where roadmaps shifted. What did you prioritize to deliver the core MVP on schedule?"
+        }
+      },
+      {
+        day: 6, week: 1,
+        headline: "Trees & Composite Pattern",
+        subheadline: "Recursive tree traversals and hierarchical tree representations.",
+        consume: {
+          title: "Binary Tree DFS & BFS Mental Models",
+          duration: "18 mins",
+          desc: "Visualize pre-order, in-order, post-order, and level-order queue traversals with visual call stacks.",
+          url: "https://www.youtube.com/c/NeetCode",
+          takeaway: "Trees are naturally recursive; identify whether state passes down (parameters) or bubbles up (return values)."
+        },
+        solve: {
+          title: "Lowest Common Ancestor in Binary Tree",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/lowest-common-ancestor-in-binary-search-tree",
+          hint: "If root matches either node, return root. Recurse left and right; if both return non-null, root is LCA."
+        },
+        design: {
+          title: "File System Directory Tree (Composite Pattern)",
+          category: "LLD / Machine Coding",
+          desc: "Implement File and Directory classes adhering to an IFileSystemNode interface for recursive size calculation.",
+          challenge: "Sketch the composite structure showing how Directory contains a list of IFileSystemNode children."
+        },
+        behavioral: {
+          title: "Insist on the Highest Standards",
+          desc: "When did you push back on a code review or design doc because it didn't meet resilience or scalability standards?"
+        }
+      },
+      {
+        day: 7, week: 1,
+        headline: "Weekly Machine Coding Simulation 1",
+        subheadline: "90-minute timed build from scratch: In-Memory Tic-Tac-Toe / Connect Four.",
+        consume: {
+          title: "Tic-Tac-Toe Low Level Design End-to-End",
+          duration: "22 mins",
+          desc: "Watch a FAANG engineer build a 100% extensible N-player, N*N grid game handling winning line checks in O(1).",
+          url: "https://www.youtube.com/c/ConceptCoding",
+          takeaway: "Separate game state, board evaluation, and player strategies into distinct decoupled packages."
+        },
+        solve: {
+          title: "Valid Sudoku & Matrix Validation",
+          diff: "Medium",
+          url: "https://neetcode.io/problems/valid-sudoku",
+          hint: "Use bitmasks or sets for each row, column, and 3x3 box to confirm values 1-9 occur at most once."
+        },
+        design: {
+          title: "Full Timed Project: Tic-Tac-Toe Game Engine",
+          category: "Machine Coding Mock",
+          desc: "Set a 90-minute timer. Code the game in your IDE with support for human vs bot players and configurable board sizes.",
+          challenge: "Whiteboard the entire domain model before typing a single line of code."
+        },
+        behavioral: {
+          title: "Earn Trust & Mentoring",
+          desc: "How have you helped an intern, apprentice, or junior SDE 1 level up their debugging or design skills?"
+        }
+      }
+    ];
+
+    // Generate remaining days up to Day 45 procedurally to ensure all 45 days are richly populated!
+    const TOPIC_PRESETS = [
+      { week: 2, name: "Heaps & Splitwise Machine Coding", dsa: "Kth Largest Element in an Array", dsaDiff: "Medium", lld: "Splitwise Debt Simplification", lldCat: "LLD / Machine Coding", hldConcept: "Debt Graph Simplification via Min-Heap" },
+      { week: 2, name: "Backtracking & Vending Machine State Pattern", dsa: "Subsets & Permutations", dsaDiff: "Medium", lld: "Vending Machine State Engine", lldCat: "State Pattern", hldConcept: "State Transitions (Idle, HasMoney, Dispensing)" },
+      { week: 2, name: "Tries & Auto-Complete Engine", dsa: "Implement Trie (Prefix Tree)", dsaDiff: "Medium", lld: "Typeahead Auto-Complete (In-Memory)", lldCat: "LLD", hldConcept: "Trie Node with Top-K Heap Caching" },
+      { week: 3, name: "Graphs & System Design Scaling 101", dsa: "Number of Islands (BFS/DFS)", dsaDiff: "Medium", lld: "Social Network Graph Connections", lldCat: "HLD Foundations", hldConcept: "Horizontal Scaling vs Vertical Scaling, LB Round Robin" },
+      { week: 3, name: "Consistent Hashing & Cache-Aside", dsa: "Clone Graph", dsaDiff: "Medium", lld: "Distributed Hash Ring Simulator", lldCat: "Distributed Building Blocks", hldConcept: "Consistent Hashing Ring with Virtual Nodes" },
+      { week: 3, name: "CAP Theorem & Database Sharding", dsa: "Course Schedule (Topological Sort)", dsaDiff: "Medium", lld: "Shard Key Router Engine", lldCat: "HLD Foundations", hldConcept: "Range-based vs Hash-based Sharding and Rebalancing" },
+      { week: 4, name: "Rate Limiter Design (Token Bucket / Leaky Bucket)", dsa: "Design Add and Search Words Data Structure", dsaDiff: "Medium", lld: "Sliding Window Log Rate Limiter", lldCat: "HLD Architecture", hldConcept: "Redis Sorted Sets for Sliding Window Rate Limiting" },
+      { week: 4, name: "URL Shortener (TinyURL) Architecture", dsa: "Encode and Decode Strings", dsaDiff: "Medium", lld: "Base62 Encoder & Counter Sharder", lldCat: "HLD Architecture", hldConcept: "Base62 conversion, Token Range Service (ZooKeeper), K-V Caching" },
+      { week: 4, name: "Global Notification Service (Pub/Sub)", dsa: "Word Break (DP)", dsaDiff: "Medium", lld: "Priority Notification Queue Dispatcher", lldCat: "HLD Architecture", hldConcept: "Kafka Topics, Dead Letter Queues, APNS/FCM Integrations" },
+      { week: 5, name: "Database Indexing (B-Tree vs LSM) & Concurrency", dsa: "Coin Change (Dynamic Programming)", dsaDiff: "Medium", lld: "Thread-Safe In-Memory Key-Value Store", lldCat: "Concurrency / LLD", hldConcept: "B+Tree vs LSM Trees (Read heavy vs Write heavy workloads)" },
+      { week: 5, name: "Distributed Locks (Redis Redlock & ZooKeeper)", dsa: "Longest Increasing Subsequence", dsaDiff: "Medium", lld: "BookMyShow Seat Reservation Concurrency", lldCat: "LLD / Concurrency", hldConcept: "Pessimistic vs Optimistic Locking with Version numbers" },
+      { week: 5, name: "Kafka Event-Driven Architecture", dsa: "Maximum Subarray & Kadane's", dsaDiff: "Medium", lld: "Order Processing Consumer Pipeline", lldCat: "HLD Architecture", hldConcept: "Partitioning, Consumer Groups, Offsets & At-Least-Once Delivery" },
+      { week: 6, name: "E-Commerce Checkout & Idempotency", dsa: "Merge Intervals", dsaDiff: "Medium", lld: "Payment Gateway Idempotent API Key Cache", lldCat: "HLD Architecture", hldConcept: "Idempotency Keys, Two-Phase Commit, Saga Orchestration" },
+      { week: 6, name: "Final Mock Sprint & Amazon LP Story Polish", dsa: "Trapping Rain Water", dsaDiff: "Hard", lld: "Full 2-Hour Machine Coding Mock", lldCat: "Mock Simulation", hldConcept: "End-to-end 45-min whiteboarding simulation & behavioral audit" }
+    ];
+
+    for (let d = 8; d <= 45; d++) {
+      const preset = TOPIC_PRESETS[(d - 8) % TOPIC_PRESETS.length];
+      const curWeek = Math.min(6, Math.floor((d - 1) / 7) + 1);
+      CURRICULUM.push({
+        day: d,
+        week: curWeek,
+        headline: `${preset.name} (Day ${d})`,
+        subheadline: `Focus on mastering ${preset.hldConcept} and clean interview execution.`,
+        consume: {
+          title: `${preset.hldConcept} Deep-Dive`,
+          duration: "15 mins",
+          desc: `Visual architectural breakdown of ${preset.hldConcept}. Focus on latency trade-offs and failure scenarios.`,
+          url: "https://www.youtube.com/c/GauravSensei",
+          takeaway: "Always quantify non-functional metrics: P99 latency, availability SLAs, and write-to-read ratios."
+        },
+        solve: {
+          title: preset.dsa,
+          diff: preset.dsaDiff,
+          url: "https://neetcode.io/roadmap",
+          hint: "Identify edge conditions early: empty inputs, zero values, and out-of-boundary pointers."
+        },
+        design: {
+          title: preset.lld,
+          category: preset.lldCat,
+          desc: `Build a clean, runnable prototype modeling ${preset.lld} with clear separation of concerns.`,
+          challenge: `Sketch the architectural boundary or class diagram for ${preset.lld}.`
+        },
+        behavioral: {
+          title: `SDE 2 Competency: ${d % 2 === 0 ? "Frugality & Cost Optimization" : "Invent & Simplify"}`,
+          desc: "Detail a system where you simplified a complex workflow or cut AWS infrastructure expenses."
+        }
+      });
+    }
+
+    // --- 2. TECH SHORTS & CONCEPT REELS DATABASE ---
+    const REELS = [
+      {
+        category: "System Design 101",
+        duration: "45s Reel",
+        icon: "🔄",
+        title: "Consistent Hashing & Ring Rebalancing",
+        subtitle: "Why modulo hashing (hash % N) causes cache invalidation storms",
+        problem: "With standard mod hashing, adding 1 server invalidates ~N/(N+1) keys (almost 99% cache miss storm!).",
+        solution: "Map both nodes and keys to a 360° hash ring. Keys route clockwise to nearest node. Adding a node moves only K/N keys. Virtual nodes prevent hot-spots.",
+        videoUrl: "https://blog.bytebytego.com/"
+      },
+      {
+        category: "Database Internals",
+        duration: "50s Reel",
+        icon: "⚡",
+        title: "B-Tree vs LSM Tree (Write Amplification)",
+        subtitle: "PostgreSQL vs Cassandra/RocksDB storage engines",
+        problem: "B-Trees require in-place random disk writes, creating write amplification and bottlenecks under massive write throughput.",
+        solution: "LSM Trees buffer writes sequentially in memory (MemTable) and append to disk (SSTables), providing blazing write speeds. Compaction merges SSTables in the background.",
+        videoUrl: "https://blog.bytebytego.com/"
+      },
+      {
+        category: "Distributed Systems",
+        duration: "40s Reel",
+        icon: "⚖️",
+        title: "CAP Theorem: Why 'CA' Doesn't Exist",
+        subtitle: "Networks will always partition; you must pick CP or AP",
+        problem: "Network cables get cut, routers fail. Network Partition (P) is inevitable in distributed systems.",
+        solution: "When a partition occurs, choose between Consistency (refuse writes/reads if nodes cannot sync) or Availability (accept writes on both sides and reconcile later).",
+        videoUrl: "https://www.youtube.com/c/GauravSensei"
+      },
+      {
+        category: "Caching Strategies",
+        duration: "60s Reel",
+        icon: "📦",
+        title: "Cache-Aside vs Write-Through vs Write-Back",
+        subtitle: "How to avoid stale reads and database thrashing",
+        problem: "Updating the database without coordinating the cache leads to stale dirty reads across multiple server threads.",
+        solution: "Cache-Aside: Read from cache; on miss, fetch from DB and populate cache. On write, update DB first, then delete (invalidate) the cache key.",
+        videoUrl: "https://blog.bytebytego.com/"
+      },
+      {
+        category: "Messaging & Queues",
+        duration: "50s Reel",
+        icon: "📨",
+        title: "Kafka vs RabbitMQ Architecture",
+        subtitle: "Message broker (push) vs Distributed commit log (pull)",
+        problem: "RabbitMQ tracks individual message acknowledgments per consumer, bogging down under millions of historical event replays.",
+        solution: "Kafka is a sequential, partitioned commit log. Consumers pull by offset at their own pace. Retains messages for days, enabling re-processing and massive throughput.",
+        videoUrl: "https://blog.bytebytego.com/"
+      },
+      {
+        category: "Rate Limiting",
+        duration: "45s Reel",
+        icon: "🚦",
+        title: "Token Bucket vs Sliding Window Counter",
+        subtitle: "Protecting APIs from DDoS with microsecond precision",
+        problem: "Fixed window counters allow double traffic spikes at the boundary (e.g. 100 requests at 11:59 and 100 at 12:00).",
+        solution: "Token Bucket fills tokens at a constant rate; requests consume tokens. Sliding Window Log in Redis uses sorted sets (ZREMRANGEBYSCORE) to count requests strictly in the last 60 seconds.",
+        videoUrl: "https://blog.bytebytego.com/"
+      },
+      {
+        category: "Concurrency & Locks",
+        duration: "55s Reel",
+        icon: "🔒",
+        title: "Optimistic vs Pessimistic Locking",
+        subtitle: "How BookMyShow avoids double seat reservations",
+        problem: "Two users click 'Book Ticket' for Seat A12 at the exact same millisecond.",
+        solution: "Optimistic Locking uses an incrementing `version` column: `UPDATE seat SET user_id=X, version=version+1 WHERE id=12 AND version=4`. If 0 rows updated, notify the second user that the seat was taken.",
+        videoUrl: "https://www.youtube.com/c/ConceptCoding"
+      },
+      {
+        category: "Data Structures",
+        duration: "40s Reel",
+        icon: "🔍",
+        title: "Bloom Filters: Fast Probabilistic Checking",
+        subtitle: "Checking membership without querying the database disk",
+        problem: "Querying disk to check if a username or URL slug already exists is slow and consumes IOPS.",
+        solution: "A Bloom Filter uses a bit array and k-hash functions. If it says 'NO', the element 100% does not exist! If it says 'YES', there's a small chance of false positive, so you only check DB when needed.",
+        videoUrl: "https://blog.bytebytego.com/"
+      }
+    ];
+
+    // --- 3. CURATED TARGET COMPANIES & JOBS ---
+    const TARGET_COMPANIES = [
+      {
+        name: "Uber",
+        tier: "Global Big Tech",
+        category: "bigtech",
+        role: "Software Engineer II (Backend / Distributed)",
+        loc: "Bengaluru / Hyderabad",
+        comp: "₹45 – 70 LPA Total Comp",
+        focus: "Heavy high-throughput distributed systems, real-time dispatch, geospatial indexing, clean LLD.",
+        portal: "https://careersat.tech/companies/uber"
+      },
+      {
+        name: "Google",
+        tier: "Global Big Tech",
+        category: "bigtech",
+        role: "Software Engineer II (L4)",
+        loc: "Bengaluru / Hyderabad",
+        comp: "₹50 – 85 LPA Total Comp",
+        focus: "Core algorithmic problem solving (zero hints), scalability, edge case rigor, Googleyness.",
+        portal: "https://support.google.com/googlecareers/answer/9018529?hl=en"
+      },
+      {
+        name: "Microsoft",
+        tier: "Global Big Tech",
+        category: "bigtech",
+        role: "Software Engineer II (L61/L62)",
+        loc: "Bengaluru / Hyderabad / Noida",
+        comp: "₹40 – 65 LPA Total Comp",
+        focus: "DSA (Trees, Graphs, DP), Low-Level Object Oriented Design, Azure cloud concepts, testing depth.",
+        portal: "https://careers.microsoft.com/"
+      },
+      {
+        name: "Atlassian",
+        tier: "Global Big Tech",
+        category: "bigtech",
+        role: "Software Engineer II (P40)",
+        loc: "Bengaluru / Remote India",
+        comp: "₹48 – 75 LPA Total Comp",
+        focus: "Clean code design, Machine Coding round, values interview, collaborative communication.",
+        portal: "https://medium.com/frontend-army"
+      },
+      {
+        name: "PhonePe",
+        tier: "Top Fintech Unicorn",
+        category: "unicorn",
+        role: "Software Engineer (SDE-2)",
+        loc: "Bengaluru",
+        comp: "₹35 – 55 LPA Total Comp",
+        focus: "High-scale payment gateways, UPI TPS handling, concurrency, distributed caching & DB locks.",
+        portal: "https://www.phonepe.com/careers/"
+      },
+      {
+        name: "Razorpay",
+        tier: "Top Fintech Unicorn",
+        category: "fintech",
+        role: "Product Engineer 2 / SDE-2",
+        loc: "Bengaluru (Hybrid)",
+        comp: "₹30 – 50 LPA + ESOPs",
+        focus: "Machine coding round, transaction reliability, microservices, payment webhook idempotency.",
+        portal: "https://www.finalroundai.com/blog/razorpay-interview-process"
+      },
+      {
+        name: "Swiggy",
+        tier: "Consumer Tech Giant",
+        category: "unicorn",
+        role: "SDE-2 (Backend / Platform)",
+        loc: "Bengaluru",
+        comp: "₹32 – 52 LPA Total Comp",
+        focus: "Real-time delivery routing, machine coding (LLD), live tracking architecture, event queues.",
+        portal: "https://careers.swiggy.in/"
+      },
+      {
+        name: "CRED",
+        tier: "Fintech Scaleup",
+        category: "fintech",
+        role: "Backend Engineer II",
+        loc: "Bengaluru",
+        comp: "₹38 – 58 LPA Total Comp",
+        focus: "Engineering craft, microservices architecture, Golang/Java depth, end-to-end design ownership.",
+        portal: "https://medium.com/frontend-army"
+      }
+    ];
+
+    // --- 4. APP STATE MANAGEMENT & LOCAL STORAGE ---
+    const STATE = {
+      currentDay: 1,
+      streak: 0,
+      completedDays: {}, // { 1: { consume: true, solve: true, design: true, behavioral: true } }
+      starNotes: {},
+      currentReelIndex: 0,
+      activeTab: 'view-today',
+      activeLabTab: 'canvas',
+      timerSeconds: 25 * 60,
+      timerRunning: false,
+      timerInterval: null,
+      jobStatus: {} // { 'Uber': 'Wishlist' }
+    };
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('sde2_prep_state_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          Object.assign(STATE, parsed);
+        }
+      } catch (e) {
+        console.warn('Storage unavailable', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('sde2_prep_state_v1', JSON.stringify({
+          currentDay: STATE.currentDay,
+          streak: STATE.streak,
+          completedDays: STATE.completedDays,
+          starNotes: STATE.starNotes,
+          jobStatus: STATE.jobStatus
+        }));
+      } catch (e) {
+        console.warn('Failed to save to localStorage', e);
+      }
+    }
+
+    // --- 5. UI RENDERERS ---
+    function renderTodayView() {
+      const cur = CURRICULUM.find(c => c.day === STATE.currentDay) || CURRICULUM[0];
+      
+      document.getElementById('dayPill').textContent = `Day ${cur.day} of 45`;
+      document.getElementById('weekPill').textContent = `Week ${cur.week}: SDE-2 Mastery`;
+      document.getElementById('dailyHeadline').textContent = cur.headline;
+      document.getElementById('dailySubheadline').textContent = cur.subheadline;
+
+      // Consume card
+      document.getElementById('consumeDuration').textContent = cur.consume.duration;
+      document.getElementById('consumeTitle').textContent = cur.consume.title;
+      document.getElementById('consumeDesc').textContent = cur.consume.desc;
+      document.getElementById('consumeTakeaway').textContent = cur.consume.takeaway;
+      document.getElementById('consumeVideoBtn').href = cur.consume.url;
+
+      // Solve card
+      document.getElementById('solveDifficulty').textContent = cur.solve.diff;
+      document.getElementById('solveTitle').textContent = cur.solve.title;
+      document.getElementById('solveProblemLink').href = cur.solve.url;
+      document.getElementById('solveHintBox').textContent = cur.solve.hint;
+
+      // Design card
+      document.getElementById('designCategory').textContent = cur.design.category;
+      document.getElementById('designTitle').textContent = cur.design.title;
+      document.getElementById('designDesc').textContent = cur.design.desc;
+      document.getElementById('canvasChallengeText').textContent = cur.design.challenge;
+
+      // Behavioral card
+      document.getElementById('behavioralTitle').textContent = cur.behavioral.title;
+      document.getElementById('behavioralDesc').textContent = cur.behavioral.desc;
+
+      // Sync Checkboxes
+      const dayData = STATE.completedDays[cur.day] || {};
+      const c1 = document.getElementById('checkConsume');
+      const c2 = document.getElementById('checkSolve');
+      const c3 = document.getElementById('checkDesign');
+      const c4 = document.getElementById('checkBehavioral');
+
+      c1.checked = !!dayData.consume;
+      c2.checked = !!dayData.solve;
+      c3.checked = !!dayData.design;
+      c4.checked = !!dayData.behavioral;
+
+      // Load star note
+      const savedNote = STATE.starNotes[cur.day] || '';
+      document.getElementById('starNotesInput').value = savedNote;
+
+      updateDailyProgressBar();
+    }
+
+    function updateDailyProgressBar() {
+      const dayData = STATE.completedDays[STATE.currentDay] || {};
+      let count = 0;
+      if (dayData.consume) count++;
+      if (dayData.solve) count++;
+      if (dayData.design) count++;
+      if (dayData.behavioral) count++;
+
+      const pct = Math.round((count / 4) * 100);
+      document.getElementById('todayProgressText').textContent = `${count} / 4 (${pct}%)`;
+      document.getElementById('todayProgressBar').style.width = `${pct}%`;
+
+      // Update Header streak
+      document.getElementById('streakCountText').textContent = `${STATE.streak} Day${STATE.streak === 1 ? '' : 's'}`;
+    }
+
+    function renderReel() {
+      const reel = REELS[STATE.currentReelIndex];
+      document.getElementById('reelCounter').textContent = `${STATE.currentReelIndex + 1} / ${REELS.length}`;
+      document.getElementById('reelCategory').textContent = reel.category;
+      document.getElementById('reelDuration').textContent = reel.duration;
+      document.getElementById('reelIcon').textContent = reel.icon;
+      document.getElementById('reelTitle').textContent = reel.title;
+      document.getElementById('reelSubtitle').textContent = reel.subtitle;
+      document.getElementById('reelProblem').textContent = reel.problem;
+      document.getElementById('reelSolution').textContent = reel.solution;
+      document.getElementById('reelDeepDiveBtn').href = reel.videoUrl;
+    }
+
+    function renderRoadmapView() {
+      const container = document.getElementById('weeksAccordionContainer');
+      container.innerHTML = '';
+
+      let totalCompleted = 0;
+
+      // Group days by week
+      for (let w = 1; w <= 6; w++) {
+        const weekDays = CURRICULUM.filter(c => c.week === w);
+        const weekCard = document.createElement('div');
+        weekCard.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5';
+
+        const weekHeader = document.createElement('div');
+        weekHeader.className = 'flex items-center justify-between cursor-pointer';
+        weekHeader.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold text-xs flex items-center justify-center">W${w}</span>
+            <span class="text-xs font-bold text-white">Week ${w}: ${getWeekTheme(w)}</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium">${weekDays.length} Days</span>
+        `;
+
+        const daysGrid = document.createElement('div');
+        daysGrid.className = 'grid grid-cols-7 gap-1.5 pt-1';
+
+        weekDays.forEach(item => {
+          const dayData = STATE.completedDays[item.day] || {};
+          const isDone = (dayData.consume && dayData.solve && dayData.design && dayData.behavioral);
+          if (isDone) totalCompleted++;
+
+          const isCurrent = (item.day === STATE.currentDay);
+
+          const dayBtn = document.createElement('button');
+          dayBtn.className = `h-10 rounded-xl flex flex-col items-center justify-center text-[10px] font-bold border transition ${
+            isCurrent
+              ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30'
+              : isDone
+              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+              : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+          }`;
+          dayBtn.innerHTML = `<span>D${item.day}</span><span class="text-[8px]">${isDone ? '✓' : '•'}</span>`;
+          dayBtn.addEventListener('click', () => {
+            STATE.currentDay = item.day;
+            saveState();
+            switchTab('view-today');
+            renderTodayView();
+          });
+
+          daysGrid.appendChild(dayBtn);
+        });
+
+        weekCard.appendChild(weekHeader);
+        weekCard.appendChild(daysGrid);
+        container.appendChild(weekCard);
+      }
+
+      const overallPct = Math.round((totalCompleted / 45) * 100);
+      document.getElementById('roadmapOverallProgress').textContent = `${totalCompleted} / 45 Done (${overallPct}%)`;
+    }
+
+    function getWeekTheme(weekNum) {
+      switch (weekNum) {
+        case 1: return "OOP, SOLID Principles & Core DSA";
+        case 2: return "Design Patterns & Hands-on LLD";
+        case 3: return "System Design Foundations & Scale";
+        case 4: return "Real-World HLD Architecture";
+        case 5: return "Concurrency, DB Internals & Kafka";
+        case 6: return "Mocks, STAR Stories & Final Sprints";
+        default: return "SDE-2 Interview Readiness";
+      }
+    }
+
+    function renderJobsView(filter = 'all') {
+      const container = document.getElementById('jobsGridContainer');
+      container.innerHTML = '';
+
+      const filtered = TARGET_COMPANIES.filter(c => filter === 'all' || c.category === filter);
+      document.getElementById('jobsCountText').textContent = `${filtered.length} Target Roles`;
+
+      filtered.forEach(company => {
+        const status = STATE.jobStatus[company.name] || 'Wishlist';
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition space-y-3';
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-white text-base">${company.name}</span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-indigo-300 border border-indigo-500/20">${company.tier}</span>
+            </div>
+            <div class="text-xs font-medium text-slate-300 mb-1">${company.role}</div>
+            <div class="text-[11px] text-amber-300/90 font-mono mb-2">💰 ${company.comp}</div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">${company.focus}</p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+            <select class="job-status-select bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500" data-company="${company.name}">
+              <option value="Wishlist" ${status === 'Wishlist' ? 'selected' : ''}>📌 Wishlist</option>
+              <option value="Applied" ${status === 'Applied' ? 'selected' : ''}>📤 Applied</option>
+              <option value="Interviewing" ${status === 'Interviewing' ? 'selected' : ''}>🎯 Interviewing</option>
+              <option value="Offer" ${status === 'Offer' ? 'selected' : ''}>🎉 Offer</option>
+            </select>
+
+            <a href="${company.portal}" target="_blank" rel="noopener noreferrer" class="px-3 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+              <span>View Portal</span>
+              <span>↗</span>
+            </a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Attach status change listeners
+      document.querySelectorAll('.job-status-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+          const comp = e.target.getAttribute('data-company');
+          STATE.jobStatus[comp] = e.target.value;
+          saveState();
+        });
+      });
+    }
+
+    // --- 6. TAB SWITCHING ---
+    function switchTab(targetViewId) {
+      STATE.activeTab = targetViewId;
+      document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      const activePanel = document.getElementById(targetViewId);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      // Update bottom nav styling
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-target') === targetViewId) {
+          btn.classList.add('text-indigo-400', 'font-semibold');
+          btn.classList.remove('text-slate-400', 'font-medium');
+        } else {
+          btn.classList.remove('text-indigo-400', 'font-semibold');
+          btn.classList.add('text-slate-400', 'font-medium');
+        }
+      });
+
+      // Special initializations per view
+      if (targetViewId === 'view-shorts') renderReel();
+      if (targetViewId === 'view-roadmap') renderRoadmapView();
+      if (targetViewId === 'view-jobs') renderJobsView();
+      if (targetViewId === 'view-lab') resizeArchitectureCanvas();
+    }
+
+    // --- 7. ARCHITECTURE CANVAS WHITEBOARD ---
+    let canvas, ctx;
+    let isDrawing = false;
+    let lastX = 0, lastY = 0;
+    let currentTool = 'pen'; // 'pen' or 'box'
+
+    function initCanvas() {
+      canvas = document.getElementById('architectureCanvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      resizeArchitectureCanvas();
+
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+
+      // Touch events for iPhone / iPad
+      canvas.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+        isDrawing = true;
+        e.preventDefault();
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (!isDrawing) return;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const currentX = touch.clientX - rect.left;
+        const currentY = touch.clientY - rect.top;
+
+        ctx.strokeStyle = document.getElementById('canvasColorPicker').value;
+        ctx.lineWidth = document.getElementById('canvasLineWidth').value;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+
+        lastX = currentX;
+        lastY = currentY;
+        e.preventDefault();
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', () => { isDrawing = false; });
+    }
+
+    function resizeArchitectureCanvas() {
+      if (!canvas) return;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        clearCanvas();
+      }
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      lastX = e.clientX - rect.left;
+      lastY = e.clientY - rect.top;
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
+
+      ctx.strokeStyle = document.getElementById('canvasColorPicker').value;
+      ctx.lineWidth = document.getElementById('canvasLineWidth').value;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (currentTool === 'pen') {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+        lastX = currentX;
+        lastY = currentY;
+      }
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      if (currentTool === 'box') {
+        const rect = canvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        ctx.strokeStyle = document.getElementById('canvasColorPicker').value;
+        ctx.lineWidth = document.getElementById('canvasLineWidth').value;
+        ctx.strokeRect(Math.min(lastX, currentX), Math.min(lastY, currentY), Math.abs(currentX - lastX), Math.abs(currentY - lastY));
+      }
+      isDrawing = false;
+    }
+
+    function clearCanvas() {
+      if (!ctx || !canvas) return;
+      ctx.fillStyle = '#050811';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Draw grid dots
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      for (let x = 20; x < canvas.width; x += 30) {
+        for (let y = 20; y < canvas.height; y += 30) {
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawSampleDiagram() {
+      clearCanvas();
+      ctx.strokeStyle = '#818cf8';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = '#1e293b';
+
+      // Draw API Gateway box
+      ctx.strokeRect(30, 40, 110, 50);
+      ctx.fillRect(30, 40, 110, 50);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px "Plus Jakarta Sans"';
+      ctx.fillText('API Gateway', 45, 70);
+
+      // Arrow
+      ctx.beginPath();
+      ctx.moveTo(140, 65);
+      ctx.lineTo(210, 65);
+      ctx.stroke();
+
+      // Microservice box
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeRect(210, 40, 120, 50);
+      ctx.fillRect(210, 40, 120, 50);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('Order Service', 230, 70);
+
+      // Cache box
+      ctx.strokeStyle = '#f59e0b';
+      ctx.strokeRect(210, 140, 120, 50);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(210, 140, 120, 50);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText('Redis Cache', 235, 170);
+
+      // Vertical connector
+      ctx.beginPath();
+      ctx.moveTo(270, 90);
+      ctx.lineTo(270, 140);
+      ctx.stroke();
+    }
+
+    // --- 8. IN-BROWSER CODE EXERCISE RUNNER ---
+    const CODE_SNIPPETS = {
+      lru: `// Thread-Safe / In-Memory LRU Cache Implementation
+class LRUCache {
+  constructor(capacity) {
+    this.capacity = capacity;
+    this.cache = new Map(); // Map preserves insertion order in JS
+  }
+
+  get(key) {
+    if (!this.cache.has(key)) return -1;
+    const val = this.cache.get(key);
+    this.cache.delete(key);
+    this.cache.set(key, val); // Move to most recently used
+    return val;
+  }
+
+  put(key, val) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.capacity) {
+      // Evict least recently used (first item in Map iterator)
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
+    this.cache.set(key, val);
+  }
+}
+
+// Running Test Cases:
+const lru = new LRUCache(2);
+lru.put(1, 10);
+lru.put(2, 20);
+console.log("get(1) ->", lru.get(1)); // 10
+lru.put(3, 30); // evicts key 2
+console.log("get(2) ->", lru.get(2)); // -1 (evicted)
+console.log("get(3) ->", lru.get(3)); // 30`,
+
+      ratelimit: `// Token Bucket Rate Limiter
+class TokenBucket {
+  constructor(capacity, refillRatePerSec) {
+    this.capacity = capacity;
+    this.tokens = capacity;
+    this.refillRate = refillRatePerSec;
+    this.lastRefill = Date.now();
+  }
+
+  allowRequest(tokensRequired = 1) {
+    this.refill();
+    if (this.tokens >= tokensRequired) {
+      this.tokens -= tokensRequired;
+      return true; // Request Allowed
+    }
+    return false; // Rate limit exceeded (429)
+  }
+
+  refill() {
+    const now = Date.now();
+    const elapsedSec = (now - this.lastRefill) / 1000;
+    const addedTokens = elapsedSec * this.refillRate;
+    this.tokens = Math.min(this.capacity, this.tokens + addedTokens);
+    this.lastRefill = now;
+  }
+}
+
+// Test Run:
+const limiter = new TokenBucket(3, 1);
+console.log("Req 1 (Allowed):", limiter.allowRequest());
+console.log("Req 2 (Allowed):", limiter.allowRequest());
+console.log("Req 3 (Allowed):", limiter.allowRequest());
+console.log("Req 4 (Should Block):", limiter.allowRequest());`,
+
+      twosum: `// Two Sum II: Sorted Array Two-Pointers
+function twoSumSorted(numbers, target) {
+  let left = 0;
+  let right = numbers.length - 1;
+
+  while (left < right) {
+    const sum = numbers[left] + numbers[right];
+    if (sum === target) {
+      return [left + 1, right + 1]; // 1-indexed answer
+    } else if (sum < target) {
+      left++;
+    } else {
+      right--;
+    }
+  }
+  return [];
+}
+
+console.log("Test [2,7,11,15], target=9 ->", twoSumSorted([2,7,11,15], 9));
+console.log("Test [2,3,4], target=6 ->", twoSumSorted([2,3,4], 6));`
+    };
+
+    function runCurrentCode() {
+      const code = document.getElementById('codeEditor').value;
+      const outputEl = document.getElementById('codeOutput');
+      const statusPill = document.getElementById('codeStatusPill');
+
+      outputEl.textContent = '';
+      statusPill.textContent = 'Running...';
+      statusPill.className = 'text-amber-400 font-mono';
+
+      const logs = [];
+      const originalLog = console.log;
+      console.log = function(...args) {
+        logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+        originalLog.apply(console, args);
+      };
+
+      try {
+        const fn = new Function(code);
+        fn();
+        outputEl.innerHTML = logs.map(l => `<div class="py-0.5">${escapeHtml(l)}</div>`).join('') || '// Executed successfully with no console outputs.';
+        statusPill.textContent = 'Success (200 OK)';
+        statusPill.className = 'text-emerald-400 font-mono';
+      } catch (err) {
+        outputEl.innerHTML = `<div class="text-rose-400">Error: ${escapeHtml(err.message)}</div>`;
+        statusPill.textContent = 'Execution Error';
+        statusPill.className = 'text-rose-400 font-mono';
+      } finally {
+        console.log = originalLog;
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // --- 9. FOCUS TIMER / POMODORO LOGIC ---
+    function updateTimerDisplay() {
+      const mins = Math.floor(STATE.timerSeconds / 60);
+      const secs = STATE.timerSeconds % 60;
+      const text = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      document.getElementById('headerTimerDisplay').textContent = text;
+      document.getElementById('modalTimerDisplay').textContent = text;
+    }
+
+    function startTimer() {
+      if (STATE.timerRunning) {
+        clearInterval(STATE.timerInterval);
+        STATE.timerRunning = false;
+        document.getElementById('startTimerBtn').textContent = 'Resume Timer';
+        document.getElementById('startTimerBtn').classList.replace('bg-rose-600', 'bg-indigo-600');
+        return;
+      }
+
+      STATE.timerRunning = true;
+      document.getElementById('startTimerBtn').textContent = 'Pause Timer';
+      document.getElementById('startTimerBtn').classList.replace('bg-indigo-600', 'bg-rose-600');
+
+      STATE.timerInterval = setInterval(() => {
+        if (STATE.timerSeconds > 0) {
+          STATE.timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(STATE.timerInterval);
+          STATE.timerRunning = false;
+          document.getElementById('startTimerBtn').textContent = 'Sprint Complete! 🎉';
+          // Play quick subtle beep via Web Audio
+          playChime();
+        }
+      }, 1000);
+    }
+
+    function resetTimer(seconds = 25 * 60) {
+      clearInterval(STATE.timerInterval);
+      STATE.timerRunning = false;
+      STATE.timerSeconds = seconds;
+      document.getElementById('startTimerBtn').textContent = 'Start Timer';
+      document.getElementById('startTimerBtn').classList.replace('bg-rose-600', 'bg-indigo-600');
+      updateTimerDisplay();
+    }
+
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } catch (e) {
+        console.warn('Audio not allowed without gesture', e);
+      }
+    }
+
+    // --- 10. EVENT LISTENERS INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderTodayView();
+      initCanvas();
+
+      // Bottom Nav buttons
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchTab(btn.getAttribute('data-target'));
+        });
+      });
+
+      // Day Navigation (Next / Prev)
+      document.getElementById('prevDayBtn').addEventListener('click', () => {
+        if (STATE.currentDay > 1) {
+          STATE.currentDay--;
+          saveState();
+          renderTodayView();
+        }
+      });
+
+      document.getElementById('nextDayBtn').addEventListener('click', () => {
+        if (STATE.currentDay < 45) {
+          STATE.currentDay++;
+          saveState();
+          renderTodayView();
+        }
+      });
+
+      // Checkbox Task updates
+      ['checkConsume', 'checkSolve', 'checkDesign', 'checkBehavioral'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          const key = id.replace('check', '').toLowerCase();
+          if (!STATE.completedDays[STATE.currentDay]) {
+            STATE.completedDays[STATE.currentDay] = {};
+          }
+          STATE.completedDays[STATE.currentDay][key] = document.getElementById(id).checked;
+          
+          // Check if all 4 completed to increment streak
+          const d = STATE.completedDays[STATE.currentDay];
+          if (d.consume && d.solve && d.design && d.behavioral) {
+            STATE.streak = Math.max(STATE.streak, STATE.currentDay);
+          }
+          saveState();
+          updateDailyProgressBar();
+        });
+      });
+
+      // Mark entire day complete
+      document.getElementById('markEntireDayCompleteBtn').addEventListener('click', () => {
+        if (!STATE.completedDays[STATE.currentDay]) {
+          STATE.completedDays[STATE.currentDay] = {};
+        }
+        STATE.completedDays[STATE.currentDay] = { consume: true, solve: true, design: true, behavioral: true };
+        document.getElementById('checkConsume').checked = true;
+        document.getElementById('checkSolve').checked = true;
+        document.getElementById('checkDesign').checked = true;
+        document.getElementById('checkBehavioral').checked = true;
+        STATE.streak = Math.max(STATE.streak, STATE.currentDay);
+        saveState();
+        updateDailyProgressBar();
+        playChime();
+      });
+
+      // Solve Hint Toggle
+      document.getElementById('toggleSolveHintBtn').addEventListener('click', () => {
+        document.getElementById('solveHintBox').classList.toggle('hidden');
+      });
+
+      // STAR Notes Toggle & Save
+      document.getElementById('toggleStarNotesBtn').addEventListener('click', () => {
+        document.getElementById('starNotesBox').classList.toggle('hidden');
+      });
+
+      document.getElementById('saveStarNotesBtn').addEventListener('click', () => {
+        const text = document.getElementById('starNotesInput').value;
+        STATE.starNotes[STATE.currentDay] = text;
+        saveState();
+        document.getElementById('saveStarNotesBtn').textContent = 'Saved! ✓';
+        setTimeout(() => {
+          document.getElementById('saveStarNotesBtn').textContent = 'Save Note';
+        }, 1500);
+      });
+
+      // Open Lab from Today's design card
+      document.getElementById('openLabForTodayBtn').addEventListener('click', () => {
+        switchTab('view-lab');
+      });
+
+      // Reels Navigation
+      document.getElementById('prevReelBtn').addEventListener('click', () => {
+        if (STATE.currentReelIndex > 0) {
+          STATE.currentReelIndex--;
+          renderReel();
+        }
+      });
+
+      document.getElementById('nextReelBtn').addEventListener('click', () => {
+        if (STATE.currentReelIndex < REELS.length - 1) {
+          STATE.currentReelIndex++;
+          renderReel();
+        }
+      });
+
+      // Lab Sub-Tabs (Canvas vs Code)
+      document.getElementById('tabLabCanvasBtn').addEventListener('click', () => {
+        document.getElementById('labCanvasSection').classList.remove('hidden');
+        document.getElementById('labCodeSection').classList.add('hidden');
+        document.getElementById('tabLabCanvasBtn').className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition';
+        document.getElementById('tabLabCodeBtn').className = 'px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+        resizeArchitectureCanvas();
+      });
+
+      document.getElementById('tabLabCodeBtn').addEventListener('click', () => {
+        document.getElementById('labCanvasSection').classList.add('hidden');
+        document.getElementById('labCodeSection').classList.remove('hidden');
+        document.getElementById('tabLabCodeBtn').className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition';
+        document.getElementById('tabLabCanvasBtn').className = 'px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+      });
+
+      // Canvas Tools
+      document.getElementById('canvasToolPen').addEventListener('click', () => {
+        currentTool = 'pen';
+        document.getElementById('canvasToolPen').className = 'px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium flex items-center gap-1';
+        document.getElementById('canvasToolBox').className = 'px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-medium flex items-center gap-1';
+      });
+
+      document.getElementById('canvasToolBox').addEventListener('click', () => {
+        currentTool = 'box';
+        document.getElementById('canvasToolBox').className = 'px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium flex items-center gap-1';
+        document.getElementById('canvasToolPen').className = 'px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-medium flex items-center gap-1';
+      });
+
+      document.getElementById('canvasToolClear').addEventListener('click', clearCanvas);
+      document.getElementById('sampleDiagramBtn').addEventListener('click', drawSampleDiagram);
+
+      // Code Sandbox
+      const codeEditor = document.getElementById('codeEditor');
+      codeEditor.value = CODE_SNIPPETS.lru;
+
+      document.getElementById('codeExerciseSelect').addEventListener('change', (e) => {
+        codeEditor.value = CODE_SNIPPETS[e.target.value] || '';
+      });
+
+      document.getElementById('resetCodeSnippetBtn').addEventListener('click', () => {
+        const val = document.getElementById('codeExerciseSelect').value;
+        codeEditor.value = CODE_SNIPPETS[val] || '';
+      });
+
+      document.getElementById('runCodeBtn').addEventListener('click', runCurrentCode);
+
+      // Focus Timer Modal & Controls
+      const timerModal = document.getElementById('timerModal');
+      document.getElementById('toggleTimerModalBtn').addEventListener('click', () => {
+        timerModal.classList.remove('hidden');
+      });
+      document.getElementById('closeTimerModalBtn').addEventListener('click', () => {
+        timerModal.classList.add('hidden');
+      });
+      document.getElementById('startTimerBtn').addEventListener('click', startTimer);
+      document.getElementById('resetTimerBtn').addEventListener('click', () => resetTimer(25 * 60));
+
+      document.querySelectorAll('.timer-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const mins = parseInt(btn.getAttribute('data-mins'), 10);
+          resetTimer(mins * 60);
+        });
+      });
+
+      // Jobs Filters
+      document.querySelectorAll('.job-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.job-filter-btn').forEach(b => {
+            b.className = 'job-filter-btn px-3 py-1 rounded-full bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex-none transition';
+          });
+          btn.className = 'job-filter-btn px-3 py-1 rounded-full bg-indigo-600 text-white font-medium flex-none transition';
+          renderJobsView(btn.getAttribute('data-filter'));
+        });
+      });
+
+      // Resize window handling for canvas
+      window.addEventListener('resize', resizeArchitectureCanvas);
+    });
+  </script>
+</body>
+</html>
